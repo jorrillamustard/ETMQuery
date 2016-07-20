@@ -9,12 +9,15 @@ Module Module1
         Dim TimeBefore As Integer
         Dim DataPath As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\admon.db"
         Dim DataPath2 As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\"
+        Dim ProcFilter, RegFilter, NetFilter, FileFilter, ImageFilter As String
+        ProcFilter = My.Application.CommandLineArgs(6)
+
         Try
 
             TimeBefore = CInt(My.Application.CommandLineArgs(0))
 
             If My.Application.CommandLineArgs(1) = True Then
-                QueryETMDate(DataPath, TimeBefore)
+                QueryETMDate(DataPath, TimeBefore, ProcFilter)
             End If
 
             If My.Application.CommandLineArgs(2) = True Then
@@ -45,7 +48,7 @@ Module Module1
 
 
 
-    Private Sub QueryETMDate(DBPath As String, TBefore As Integer)
+    Private Sub QueryETMDate(DBPath As String, TBefore As Integer, filter As String)
         Dim eventType = "Process Event"
         Dim conn As New SQLiteConnection("Data Source=" & DBPath)
         Dim csvFile As String = My.Application.Info.DirectoryPath & "\ETM.csv"
@@ -58,7 +61,7 @@ Module Module1
 
 
         conn.Open()
-        Dim Query As String = "select * from ProcessEvent "
+        Dim Query As String = "select * from ProcessEvent where FullPath LIKE '%" & filter & "%' OR CurrentProcessID LIKE '%" & filter & "%' OR ParentId LIKE '%" & filter & "%' OR ProcessId LIKE '%" & filter & "%' OR Hash LIKE '%" & filter & "%' OR UserName LIKE '%" & filter & "%' OR CommandLine LIKE '%" & filter & "%'"
         Dim SQLcmd1 As New SQLiteCommand(Query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
         If datareader.HasRows Then
