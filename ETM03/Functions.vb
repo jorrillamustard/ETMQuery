@@ -48,15 +48,17 @@ Module Functions
     Function Get_TimeBeforeNow(ByVal TBefore As Integer)
 
         'Subtract 1600 years for ETM time, then the minutes in TBefore
-        Dim rtn As DateTime
-            If TBefore > 0 Then
-                rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
-            Else
-                rtn = Now.AddYears(-1600)
+        Dim rtn As New DateTime
+        If TBefore > 0 Then
+            rtn = DateTime.UtcNow
+            rtn = rtn.AddYears(-1600).AddMinutes(Math.Abs(TBefore) * -1)
+            'rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
+        Else
+            rtn = Now.AddYears(-1600)
             End If
 
-        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy HH:mm:ss"))
-        Return rtn.ToString("M/d/yyyy HH:mm:ss")
+        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("o"))
+        Return rtn
 
     End Function
 
@@ -101,8 +103,8 @@ Module Functions
                 Try
 
                     Dim eventout As New EventOutput
-                    eventout.EventTime = New DateTime(datareader("StartTime")).ToString("M/d/yy hh:mm:ss tt")
-                    eventout.EndTime = New DateTime(datareader("EndTime")).ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
+                    eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
                     eventout.EventType = eventType
                     eventout.FullPath = datareader("FullPath").ToString()
                     eventout.CurrentPID = datareader("CurrentProcessID")
@@ -187,7 +189,7 @@ Module Functions
                         If matchimage = True Then
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.RegistryPath = datareader("Path").ToString
@@ -224,8 +226,10 @@ Module Functions
         Dim ImageFilter = My.Application.CommandLineArgs(9)
 
         While index < 10
+
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
+            Debug.WriteLine("Current Network Database: " & dbname)
 
             If File.Exists(eventspath & dbname) Then
                 ' File is Here
@@ -264,6 +268,7 @@ Module Functions
             If datareader.HasRows Then
 
                 While datareader.Read()
+
                     Try
 
                         rowCount = datareader("ProcessRow")
@@ -293,8 +298,7 @@ Module Functions
 
 
                             Dim eventout As New EventOutput
-
-                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -397,7 +401,7 @@ Module Functions
                             End If
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -481,7 +485,7 @@ Module Functions
 
                         If matchimage = True Then
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy HH:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
