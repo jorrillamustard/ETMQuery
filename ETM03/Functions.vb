@@ -38,6 +38,41 @@ Module Functions
         Property ImageSize As String
 
     End Class
+
+    Class ParentProcessInfo
+        Property Path As String
+        Property PID As String
+        Property PPID As String
+        Sub New()
+
+        End Sub
+    End Class
+
+    Function EventProcessInfo(ByVal admonpath As String, rowid As String, imagefilter As String) As ParentProcessInfo
+        Dim rtninfo As New ParentProcessInfo
+        Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
+        procconn.Open()
+        Dim procquery As String
+        Select Case imagefilter
+            Case "*"
+                procquery = "select * from ProcessEvent where rowid = '" & rowid & "'"
+
+            Case Else
+                procquery = "select * from ProcessEvent where rowid = '" & rowid & "' AND (FullPath LIKE '%" & imagefilter & "%' OR CommandLine LIKE '%" & imagefilter & "%')"
+        End Select
+        Dim proccmd As New SQLiteCommand(procquery, procconn)
+        Dim procreader As SQLiteDataReader = proccmd.ExecuteReader()
+        procreader.Read()
+        rtninfo.Path = procreader("FullPath")
+        rtninfo.PID = procreader("ProcessID")
+        rtninfo.PPID = procreader("ParentID")
+        procreader.Close()
+        proccmd.Dispose()
+        procconn.Close()
+
+        Return rtninfo
+    End Function
+
     Sub ExtractDLL()
         If IO.File.Exists("Support.exe") Then
             Dim psinfo As New ProcessStartInfo
@@ -61,10 +96,10 @@ Module Functions
                 rtn = Now.AddYears(-1600)
             End If
 
-            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
-            Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yy hh:mm:ss tt"))
+            Return rtn.ToString("M/d/yy hh:mm:ss tt")
         Catch ex As Exception
-            Return Now.AddYears(-1600).ToString("M/d/yyyy hh:mm:ss tt")
+            Return Now.AddYears(-1600).ToString("M/d/yy hh:mm:ss tt")
         End Try
     End Function
 
@@ -143,7 +178,6 @@ Module Functions
         Dim eventType = "Registry Event"
         Dim index As Integer = 0
 
-
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
@@ -157,9 +191,6 @@ Module Functions
             Dim rowCount = 0
 
             Dim regconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
-            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
-
-
             regconn.Open()
             'Dim Query As String = "select * from Events where EventType = '0'"
             Dim Query As String = "select * from Events where EventType = '0'"
@@ -184,64 +215,39 @@ Module Functions
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
-                procconn.Open()
+
                 While datareader.Read()
                     Try
                         ' Reached RegDateFunction while loop 1
                         Dim d3 As Date = New DateTime(datareader("Time"))
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
-
                         rowCount = datareader("ProcessRow")
+                        'Get parent process info
+                        Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, ImageFilter)
 
-                        'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String
-                        Select Case ImageFilter
-                            Case "*"
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
+                        If datareader("Path").ToString.Contains("\REGISTRY\") Then
 
-                            Case Else
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND (FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%')"
+                            Dim eventout As New EventOutput
+                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventType = eventType
+                            eventout.FullPath = procinfo.Path
+                            eventout.RegistryPath = datareader("Path").ToString
+                            eventout.ParentPID = procinfo.PPID
+                            eventout.PID = procinfo.PID
+                            eventout.Key = datareader("Key").ToString
+                            eventout.Data = datareader("Data").ToString
 
-                        End Select
+                            Debug.WriteLine(eventout)
+                            Console.WriteLine(eventout)
 
-
-                        Dim ProcessName As String = ""
-                        Dim PID As String = ""
-                        Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
-                        Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
-
-                        If datareader2.Read() Then
-                            If datareader("Path").ToString.Contains("\REGISTRY\") Then
-
-                                ProcessName = datareader2("FullPath").ToString
-                                PID = datareader2("ProcessID").ToString
-                                PPID = datareader2("ParentID").ToString
-
-                                Dim eventout As New EventOutput
-                                eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                                eventout.EventType = eventType
-                                eventout.FullPath = ProcessName
-                                eventout.RegistryPath = datareader("Path").ToString
-                                eventout.ParentPID = PPID
-                                eventout.PID = PID
-                                eventout.Key = datareader("Key").ToString
-                                eventout.Data = datareader("data").ToString
-
-                                Debug.WriteLine(eventout)
-
-                                Console.WriteLine(eventout)
-
-                            End If
                         End If
-
                     Catch ex As Exception
                         Console.Error.WriteLine(ex.Message)
                     End Try
 
                 End While
-                procconn.Close()
+
             End If
 
             regconn.Close()
@@ -269,7 +275,6 @@ Module Functions
             Dim rowCount = 0
 
             Dim netconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
-            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
 
             netconn.Open()
             'Dim Query As String = "select * from Events where EventType = '1'"
@@ -296,7 +301,6 @@ Module Functions
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
-                procconn.Open()
 
                 While datareader.Read()
                     Try
@@ -305,6 +309,8 @@ Module Functions
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                         rowCount = datareader("ProcessRow")
+                        'Get parent process info
+                        Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, ImageFilter)
 
                         Dim AddressFamily As String
                         Dim protocol As String
@@ -321,35 +327,14 @@ Module Functions
                             protocol = "UDP"
                         End If
 
-                        ' Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String
-                        Select Case ImageFilter
-                            Case "*"
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
 
-                            Case Else
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
-
-                        End Select
-                        Dim ProcessName As String = ""
-                        Dim PID As String = ""
-                        Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
-                        Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
-
-                        If datareader2.Read() Then
-
-                            ProcessName = datareader2("FullPath").ToString
-                            PID = datareader2("ProcessID").ToString
-                            PPID = datareader2("ParentID").ToString
-
-                            Dim eventout As New EventOutput
+                        Dim eventout As New EventOutput
                             eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
-                            eventout.FullPath = ProcessName
-                            eventout.ParentPID = PPID
-                            eventout.PID = PID
-                            eventout.AddressFamily = AddressFamily
+                        eventout.FullPath = procinfo.Path
+                        eventout.ParentPID = procinfo.PPID
+                        eventout.PID = procinfo.PID
+                        eventout.AddressFamily = AddressFamily
                             eventout.Protocol = protocol
                             eventout.LocalAddress = datareader("LocalAddress").ToString
                             eventout.LocalPort = datareader("LocalPort").ToString
@@ -360,14 +345,12 @@ Module Functions
                             Debug.WriteLine(eventout)
                             Console.WriteLine(eventout)
 
-                        End If
-
                     Catch ex As Exception
                         Console.Error.WriteLine(ex.Message)
                     End Try
 
                 End While
-                procconn.Close()
+
             End If
 
             netconn.Close()
@@ -394,7 +377,6 @@ Module Functions
             Dim rowCount = 0
 
             Dim fileconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
-            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
 
             fileconn.Open()
             'Dim Query As String = "select * from Events where EventType = '3'"
@@ -421,7 +403,6 @@ Module Functions
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
-                procconn.Open()
 
                 While datareader.Read()
                     Try
@@ -431,59 +412,37 @@ Module Functions
 
 
                         rowCount = datareader("ProcessRow")
+                        'Get parent process info
+                        Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, ImageFilter)
 
-                        '  Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String
-                        Select Case ImageFilter
-                            Case "*"
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
-
-                            Case Else
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
-
-                        End Select
-                        Dim ProcessName As String = ""
-                        Dim PID As String = ""
-                        Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
-                        Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
-
-
-                        If datareader2.Read() Then
-
-                            ProcessName = datareader2("FullPath").ToString
-                            PID = datareader2("ProcessID").ToString
-                            PPID = datareader2("ParentID").ToString
-                            Dim action As String
-                            If datareader("EventSubType") = 4 And datareader("isCreate") = 1 Then
-                                action = "File Created"
-                            ElseIf datareader("EventSubType") = 4 And datareader("isCreate") = 0 Then
-                                action = "Write"
-                            ElseIf datareader("EventSubType") = 0 Then
-                                action = "Read"
-                            Else
-                                action = "N/A"
-                            End If
-
-                            Dim eventout As New EventOutput
-                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                            eventout.EventType = eventType
-                            eventout.FullPath = ProcessName
-                            eventout.ParentPID = PPID
-                            eventout.PID = PID
-                            eventout.FileAction = action
-                            Debug.WriteLine(eventout)
-
-                            Console.WriteLine(eventout)
-
+                        Dim action As String
+                        If datareader("EventSubType") = 4 And datareader("isCreate") = 1 Then
+                            action = "File Created"
+                        ElseIf datareader("EventSubType") = 4 And datareader("isCreate") = 0 Then
+                            action = "Write"
+                        ElseIf datareader("EventSubType") = 0 Then
+                            action = "Read"
+                        Else
+                            action = "N/A"
                         End If
+
+                        Dim eventout As New EventOutput
+                        eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                        eventout.EventType = eventType
+                        eventout.FullPath = procinfo.Path
+                        eventout.ParentPID = procinfo.PPID
+                        eventout.PID = procinfo.PID
+                        eventout.FileAction = action
+                        Debug.WriteLine(eventout)
+
+                        Console.WriteLine(eventout)
 
                     Catch ex As Exception
                         Console.Error.WriteLine(ex.Message)
                     End Try
 
                 End While
-                procconn.Close()
+
             End If
 
             fileconn.Close()
@@ -509,7 +468,6 @@ Module Functions
             Dim rowCount = 0
             ' Console.WriteLine(DataPath & dbname)
             Dim ImageConn As New SQLiteConnection("Data Source=" & eventspath & dbname)
-            Dim ProcConn As New SQLiteConnection("Data Source=" & admonpath)
 
             ImageConn.Open()
 
@@ -536,7 +494,6 @@ Module Functions
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
-                ProcConn.Open()
 
                 While datareader.Read()
                     Try
@@ -545,37 +502,16 @@ Module Functions
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                         rowCount = datareader("ProcessRow")
+                        'Get parent process info
+                        Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, ImageFilter)
 
-                        'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String
-                        Select Case ImageFilter
-                            Case "*"
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
-
-                            Case Else
-                                Query2 = "select * from ProcessEvent where rowid = " & rowCount & " AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
-
-                        End Select
-                        Dim ProcessName As String = ""
-                        Dim PID As String = ""
-                        Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, ProcConn)
-                        Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
-
-
-                        If datareader2.Read() Then
-
-                            ProcessName = datareader2("FullPath").ToString
-                            PID = datareader2("ProcessID").ToString
-                            PPID = datareader2("ParentID").ToString
-
-                            Dim eventout As New EventOutput
+                        Dim eventout As New EventOutput
                             eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
-                            eventout.FullPath = ProcessName
-                            eventout.ParentPID = PPID
-                            eventout.PID = PID
-                            eventout.Hash = datareader("Hash").ToString
+                        eventout.FullPath = procinfo.Path
+                        eventout.ParentPID = procinfo.PPID
+                        eventout.PID = procinfo.PID
+                        eventout.Hash = datareader("Hash").ToString
                             eventout.ImageBase = datareader("ImageBase").ToString
                             eventout.ImageSize = datareader("ImageSize").ToString
 
@@ -583,14 +519,12 @@ Module Functions
 
                             Console.WriteLine(eventout)
 
-                        End If
-
                     Catch ex As Exception
                         Console.Error.WriteLine(ex.Message)
                     End Try
 
                 End While
-                ProcConn.Close()
+
             End If
 
             ImageConn.Close()
