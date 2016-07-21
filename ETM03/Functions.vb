@@ -99,13 +99,10 @@ Module Functions
             While datareader.Read()
 
                 Try
-                    Dim d3 As Date = New DateTime(datareader("StartTime"))
-                    Dim d4 As Date = New DateTime(datareader("EndTime"))
-                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                     Dim eventout As New EventOutput
-                    eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                    eventout.EndTime = d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                     eventout.EventType = eventType
                     eventout.FullPath = datareader("FullPath").ToString()
                     eventout.CurrentPID = datareader("CurrentProcessID")
@@ -178,8 +175,6 @@ Module Functions
                 While datareader.Read()
                     Try
                         ' Reached RegDateFunction while loop 1
-                        Dim d3 As Date = New DateTime(datareader("Time"))
-                        Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                         rowCount = datareader("ProcessRow")
                         'Get parent process info
@@ -192,7 +187,7 @@ Module Functions
                         If matchimage = True Then
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.RegistryPath = datareader("Path").ToString
@@ -299,7 +294,7 @@ Module Functions
 
                             Dim eventout As New EventOutput
 
-                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -380,9 +375,6 @@ Module Functions
                 While datareader.Read()
                     Try
 
-                        Dim d3 As Date = New DateTime(datareader("Time"))
-                        Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-
 
                         rowCount = datareader("ProcessRow")
                         'Get parent process info
@@ -405,7 +397,7 @@ Module Functions
                             End If
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -478,8 +470,6 @@ Module Functions
                 While datareader.Read()
                     Try
 
-                        Dim d3 As Date = New DateTime(datareader("Time"))
-                        Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                         rowCount = datareader("ProcessRow")
                         'Get parent process info
@@ -491,7 +481,7 @@ Module Functions
 
                         If matchimage = True Then
                             Dim eventout As New EventOutput
-                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
