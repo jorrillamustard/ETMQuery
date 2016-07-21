@@ -115,17 +115,19 @@ Module Functions
     Function Get_TimeBeforeNow(ByVal TBefore As Integer)
         Try
             'Subtract 1600 years for ETM time, then the minutes in TBefore
-            Dim rtn
+            Dim rtn As DateTime
             If TBefore > 0 Then
                 rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
             Else
                 rtn = Now.AddYears(-1600)
             End If
 
-            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yy hh:mm:ss tt"))
-            Return rtn.ToString("M/d/yy hh:mm:ss tt")
+            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
+            Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+
         Catch ex As Exception
-            Return Now.AddYears(-1600).ToString("M/d/yy hh:mm:ss tt")
+            Return Now.AddYears(-1600).ToString("M/d/yyyy hh:mm:ss tt")
+
         End Try
     End Function
 
@@ -147,14 +149,16 @@ Module Functions
 
         ' Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CurrentProcessID LIKE '%" & Filter() & "%' OR ParentId LIKE '%" & Filter() & "%' OR ProcessId LIKE '%" & Filter() & "%' OR Hash LIKE '%" & Filter() & "%' OR UserName LIKE '%" & Filter() & "%' OR CommandLine LIKE '%" & Filter() & "%'"
         Dim query As String = "select * from ProcessEvent"
+
         If TBefore > 0 Then
-            query = query & " where StartTime >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
-            Debug.WriteLine(query)
-        Else
-            query = query & " where StartTime <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
-            Debug.WriteLine(query)
-        End If
-        Select Case ImageFilter
+                query = query & " where StartTime >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(query)
+            Else
+                query = query & " where StartTime <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(query)
+            End If
+
+            Select Case ImageFilter
             Case "*"
                 'Do nothing
             Case Else
