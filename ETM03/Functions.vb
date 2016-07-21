@@ -9,6 +9,32 @@ Module Functions
         End Sub
 
         Overrides Function ToString() As String
+            Dim paren = """"
+            EventTime = paren & EventTime & paren
+            EndTime = paren & EndTime & paren
+            EventType = paren & EventType & paren
+            FullPath = paren & FullPath & paren
+            RegistryPath = paren & RegistryPath & paren
+            CurrentPID = paren & CurrentPID & paren
+            ParentPID = paren & ParentPID & paren
+            PID = paren & PID & paren
+            Overflowed = paren & Overflowed & paren
+            Hash = paren & Hash & paren
+            Username = paren & Username & paren
+            CommandLine = paren & CommandLine & paren
+            Key = paren & Key & paren
+            Data = paren & Data & paren
+            AddressFamily = paren & AddressFamily & paren
+            Protocol = paren & Protocol & paren
+            LocalAddress = paren & LocalAddress & paren
+            LocalPort = paren & LocalPort & paren
+            RemoteAddress = paren & RemoteAddress & paren
+            RemotePort = paren & RemotePort & paren
+            URL = paren & URL & paren
+            FileAction = paren & FileAction & paren
+            ImageBase = paren & ImageBase & paren
+            ImageSize = paren & ImageSize & paren
+
             Return Join({EventTime, EndTime, EventType, FullPath, RegistryPath, CurrentPID, ParentPID, PID, Overflowed,
             Hash, Username, CommandLine, Key, Data, AddressFamily, Protocol, LocalAddress, LocalPort, RemoteAddress, RemotePort, URL, FileAction, ImageBase, ImageSize}, ";"c)
         End Function
@@ -55,7 +81,7 @@ Module Functions
         Dim procquery As String
         Select Case imagefilter
             Case "*"
-                procquery = "select * from ProcessEvent where rowid = '" & rowid & "'"
+                procquery = "Select * from ProcessEvent where rowid = '" & rowid & "'"
 
             Case Else
                 procquery = "select * from ProcessEvent where rowid = '" & rowid & "' AND (FullPath LIKE '%" & imagefilter & "%' OR CommandLine LIKE '%" & imagefilter & "%')"
