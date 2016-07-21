@@ -55,15 +55,15 @@ Module Functions
                 rtn = Now.AddYears(-1600)
             End If
 
-            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
-            Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy HH:mm:ss"))
+        Return rtn.ToString("M/d/yyyy HH:mm:ss")
 
     End Function
 
     Function Convert_TimeToTick(ByVal dt As DateTime)
 
         Debug.WriteLine("Time To Ticks = " & dt.Ticks)
-            Return dt.Ticks
+        Return dt.Ticks
 
     End Function
 

@@ -22,6 +22,7 @@ Module Module1
         Try
 
             Dim TimeBefore As Long = Convert_TimeToTick(Get_TimeBeforeNow((My.Application.CommandLineArgs(0))))
+
             Dim TimeBeforeGreaterThan0 As Boolean = False
             If CInt(My.Application.CommandLineArgs(0)) > 0 Then
                 TimeBeforeGreaterThan0 = True
