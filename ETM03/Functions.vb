@@ -2,6 +2,42 @@
 Imports System.IO
 
 Module Functions
+
+    Class EventOutput
+        Sub New()
+
+        End Sub
+
+        Overrides Function ToString() As String
+            Return Join({EventTime, EndTime, EventType, FullPath, RegistryPath, CurrentPID, ParentPID, PID, Overflowed,
+            Hash, Username, CommandLine, Key, Data, AddressFamily, Protocol, LocalAddress, LocalPort, RemoteAddress, RemotePort, URL, FileAction, ImageBase, ImageSize}, ";"c)
+        End Function
+        Property EventTime As String
+        Property EndTime As String
+        Property EventType As String
+        Property FullPath As String
+        Property RegistryPath As String
+        Property CurrentPID As String
+        Property ParentPID As String
+        Property PID As String
+        Property Overflowed As String
+        Property Hash As String
+        Property Username As String
+        Property CommandLine As String
+        Property Key As String
+        Property Data As String
+        Property AddressFamily As String
+        Property Protocol As String
+        Property LocalAddress As String
+        Property LocalPort As String
+        Property RemoteAddress As String
+        Property RemotePort As String
+        Property URL As String
+        Property FileAction As String
+        Property ImageBase As String
+        Property ImageSize As String
+
+    End Class
     Sub ExtractDLL()
         If IO.File.Exists("Support.exe") Then
             Dim psinfo As New ProcessStartInfo
@@ -75,32 +111,21 @@ Module Functions
                     Dim d4 As Date = New DateTime(datareader("EndTime"))
                     Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
+                    Dim eventout As New EventOutput
+                    eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EndTime = d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EventType = eventType
+                    eventout.FullPath = datareader("FullPath").ToString()
+                    eventout.CurrentPID = datareader("CurrentProcessID")
+                    eventout.ParentPID = datareader("ParentID").ToString()
+                    eventout.PID = datareader("ProcessID").ToString()
+                    eventout.Overflowed = datareader("OverFlowed").ToString()
+                    eventout.Hash = datareader("Hash").ToString()
+                    eventout.Username = datareader("UserName").ToString()
+                    eventout.CommandLine = datareader("CommandLine").ToString()
+                    Debug.WriteLine(eventout)
+                    Console.WriteLine(eventout)
 
-                    Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
-                              d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
-                              eventType & ";" &
-                              datareader("FullPath").ToString() & ";" &
-                              "" & ";" &
-                              datareader("CurrentProcessID") & ";" &
-                              datareader("ParentID").ToString() & ";" &
-                              datareader("ProcessID").ToString() & ";" &
-                              datareader("OverFlowed").ToString() & ";" &
-                              datareader("Hash").ToString() & ";" &
-                              datareader("UserName").ToString() & ";" &
-                              datareader("CommandLine").ToString() & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "" & ";" &
-                              "")
-                    Console.WriteLine(line)
-                    Debug.WriteLine(line)
 
                 Catch ex As Exception
                     Console.Error.WriteLine(ex.Message)
@@ -194,32 +219,19 @@ Module Functions
                                 PID = datareader2("ProcessID").ToString
                                 PPID = datareader2("ParentID").ToString
 
+                                Dim eventout As New EventOutput
+                                eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                                eventout.EventType = eventType
+                                eventout.FullPath = ProcessName
+                                eventout.RegistryPath = datareader("Path").ToString
+                                eventout.ParentPID = PPID
+                                eventout.PID = PID
+                                eventout.Key = datareader("Key").ToString
+                                eventout.Data = datareader("data").ToString
 
-                                Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
-                                      "" & ";" &                                                            'End Time
-                                      eventType & ";" &
-                                      ProcessName & ";" &                                                   'Path
-                                      datareader("Path").ToString & ";" &                                   'RegPath    
-                                      "" & ";" &                                                            'Current PID
-                                      PPID & ";" &                                                          'Parent PID
-                                      PID & ";" &                                                           'PID
-                                      "" & ";" &                                                            'Overflowed
-                                      "" & ";" &                                                            'Hash
-                                      "" & ";" &                                                            'UserName
-                                      "" & ";" &                                                            'Command
-                                      datareader("Key").ToString & ";" &                                    'key
-                                      datareader("data").ToString & ";" &                                           'data
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      "" & ";" &
-                                      ""
+                                Debug.WriteLine(eventout)
 
-                                Console.WriteLine(line1)
+                                Console.WriteLine(eventout)
 
                             End If
                         End If
@@ -331,30 +343,22 @@ Module Functions
                             PID = datareader2("ProcessID").ToString
                             PPID = datareader2("ParentID").ToString
 
+                            Dim eventout As New EventOutput
+                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventType = eventType
+                            eventout.FullPath = ProcessName
+                            eventout.ParentPID = PPID
+                            eventout.PID = PID
+                            eventout.AddressFamily = AddressFamily
+                            eventout.Protocol = protocol
+                            eventout.LocalAddress = datareader("LocalAddress").ToString
+                            eventout.LocalPort = datareader("LocalPort").ToString
+                            eventout.RemoteAddress = datareader("RemoteAddress").ToString
+                            eventout.RemotePort = datareader("RemotePort").ToString
+                            eventout.URL = datareader("URL").ToString
 
-                            Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
-                                  "" & ";" &                                                            'End Time
-                                  eventType & ";" &
-                                  ProcessName & ";" &                                                   'Path
-                                  datareader("Path").ToString & ";" &                                   'RegPath    
-                                  "" & ";" &                                                            'Current PID
-                                  PPID & ";" &                                                          'Parent PID
-                                  PID & ";" &                                                           'PID
-                                  "" & ";" &                                                            'Overflowed
-                                  "" & ";" &                                                            'Hash
-                                  "" & ";" &                                                            'UserName
-                                  "" & ";" &                                                            'Command
-                                  "" & ";" &                                                            'key
-                                  "" & ";" &                                                            'data
-                                  AddressFamily & ";" &                                                 'AddressFamily
-                                  protocol & ";" &                                                      'Protocol
-                                  datareader("LocalAddress").ToString & ";" &                           'Local Address
-                                  datareader("LocalPort").ToString & ";" &                              'Local Port
-                                  datareader("RemoteAddress").ToString & ";" &                          'Remote Address
-                                  datareader("RemotePort").ToString & ";" &                                    'Remote Port
-                                  "" & ";" &
-                                  ""
-                            Console.WriteLine(line1)
+                            Debug.WriteLine(eventout)
+                            Console.WriteLine(eventout)
 
                         End If
 
@@ -461,32 +465,16 @@ Module Functions
                                 action = "N/A"
                             End If
 
+                            Dim eventout As New EventOutput
+                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventType = eventType
+                            eventout.FullPath = ProcessName
+                            eventout.ParentPID = PPID
+                            eventout.PID = PID
+                            eventout.FileAction = action
+                            Debug.WriteLine(eventout)
 
-                            Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
-                                  "" & ";" &                                                            'End Time
-                                  eventType & ";" &
-                            ProcessName & ";" &                                                   'Path
-                                  datareader("Path").ToString & ";" &                                   'RegPath    
-                                  "" & ";" &                                                            'Current PID
-                                  PPID & ";" &                                                          'Parent PID
-                                  PID & ";" &                                                           'PID
-                                  "" & ";" &                                                            'Overflowed
-                                  "" & ";" &                                                            'Hash
-                                  "" & ";" &                                                            'UserName
-                                  "" & ";" &                                                            'Command
-                                  "" & ";" &                                                            'key
-                                  "" & ";" &                                                            'data
-                                  "" & ";" &                                                            'AddressFamily
-                                  "" & ";" &                                                            'Protocol
-                                  "" & ";" &                                                            'Local Address
-                                  "" & ";" &                                                            'Local Port
-                                  "" & ";" &                                                            'Remote Address
-                                  "" & ";" &                                                            'Remote Port
-                                  action & ";" &                                                                'File Action'
-                                  "" & ";" &
-                                  ""
-
-                            Console.WriteLine(line1)
+                            Console.WriteLine(eventout)
 
                         End If
 
@@ -581,32 +569,19 @@ Module Functions
                             PID = datareader2("ProcessID").ToString
                             PPID = datareader2("ParentID").ToString
 
+                            Dim eventout As New EventOutput
+                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventType = eventType
+                            eventout.FullPath = ProcessName
+                            eventout.ParentPID = PPID
+                            eventout.PID = PID
+                            eventout.Hash = datareader("Hash").ToString
+                            eventout.ImageBase = datareader("ImageBase").ToString
+                            eventout.ImageSize = datareader("ImageSize").ToString
 
-                            Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
-                                  "" & ";" &                                                            'End Time
-                                  eventType & ";" &
-                            ProcessName & ";" &                                                   'Path
-                                  datareader("Path").ToString & ";" &                                   'RegPath    
-                                  "" & ";" &                                                            'Current PID
-                                  PPID & ";" &                                                          'Parent PID
-                                  PID & ";" &                                                           'PID
-                                  "" & ";" &                                                            'Overflowed
-                                  datareader("Hash").ToString & ";" &                                   'Hash
-                                  "" & ";" &                                                            'UserName
-                                  "" & ";" &                                                            'Command
-                                  "" & ";" &                                                            'key
-                                  "" & ";" &                                                            'data
-                                  "" & ";" &                                                            'AddressFamily
-                                  "" & ";" &                                                            'Protocol
-                                  "" & ";" &                                                            'Local Address
-                                  "" & ";" &                                                            'Local Port
-                                  "" & ";" &                                                            'Remote Address
-                                  "" & ";" &                                                            'Remote Port
-                                  "" & ";" &                                                            'File Action'
-                                  datareader("ImageBase").ToString & ";" &                              'Image Base'
-                                  datareader("ImageSize").ToString                                      'Image Size'
+                            Debug.WriteLine(eventout)
 
-                            Console.WriteLine(line1)
+                            Console.WriteLine(eventout)
 
                         End If
 
