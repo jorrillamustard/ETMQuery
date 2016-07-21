@@ -46,9 +46,9 @@ Module Functions
     End Sub
 
     Function Get_TimeBeforeNow(ByVal TBefore As Integer)
-        Try
-            'Subtract 1600 years for ETM time, then the minutes in TBefore
-            Dim rtn As DateTime
+
+        'Subtract 1600 years for ETM time, then the minutes in TBefore
+        Dim rtn As DateTime
             If TBefore > 0 Then
                 rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
             Else
@@ -58,22 +58,16 @@ Module Functions
             Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
             Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
 
-        Catch ex As Exception
-            Return Now.AddYears(-1600).ToString("M/d/yyyy hh:mm:ss tt")
-
-        End Try
     End Function
 
     Function Convert_TimeToTick(ByVal dt As DateTime)
-        Try
-            Debug.WriteLine("Time To Ticks = " & dt.Ticks)
+
+        Debug.WriteLine("Time To Ticks = " & dt.Ticks)
             Return dt.Ticks
-        Catch ex As Exception
-            Return Now.Ticks
-        End Try
+
     End Function
 
-    Sub QueryETMDate(admonpath As String, TBefore As Integer)
+    Sub QueryETMDate(admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim eventType = "Process Event"
         Dim conn As New SQLiteConnection("Data Source=" & admonpath & ";Read Only=True;")
@@ -83,15 +77,15 @@ Module Functions
         ' Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CurrentProcessID LIKE '%" & Filter() & "%' OR ParentId LIKE '%" & Filter() & "%' OR ProcessId LIKE '%" & Filter() & "%' OR Hash LIKE '%" & Filter() & "%' OR UserName LIKE '%" & Filter() & "%' OR CommandLine LIKE '%" & Filter() & "%'"
         Dim query As String = "select * from ProcessEvent"
 
-        If TBefore > 0 Then
-                query = query & " where StartTime >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
-                Debug.WriteLine(query)
-            Else
-                query = query & " where StartTime <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
-                Debug.WriteLine(query)
-            End If
+        If TBeforeGreaterThan0 = True Then
+            query = query & " where StartTime >= '" & TBefore & "'"
+            Debug.WriteLine(query)
+        Else
+            query = query & " where StartTime <= '" & TBefore & "'"
+            Debug.WriteLine(query)
+        End If
 
-            Select Case ImageFilter
+        Select Case ImageFilter
             Case "*"
                 'Do nothing
             Case Else
@@ -137,7 +131,7 @@ Module Functions
         conn.Dispose()
 
     End Sub
-    Sub DateRegQuery(eventspath As String, admonpath As String, TBefore As Integer)
+    Sub DateRegQuery(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim RegFilter = My.Application.CommandLineArgs(6)
         Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim eventType = "Registry Event"
@@ -160,10 +154,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '0'"
             Dim Query As String = "select * from Events where EventType = '0'"
             If TBefore > 0 Then
-                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case RegFilter
@@ -228,7 +222,7 @@ Module Functions
 
     End Sub
 
-    Sub DateNetworkQuery(eventspath As String, admonpath As String, TBefore As Integer)
+    Sub DateNetworkQuery(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "Network Event"
         Dim index As Integer = 0
         Dim NetFilter = My.Application.CommandLineArgs(7)
@@ -252,10 +246,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '1'"
             Dim Query As String = "select * from Events where EventType = '1'"
             If TBefore > 0 Then
-                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case NetFilter
@@ -276,9 +270,6 @@ Module Functions
 
                 While datareader.Read()
                     Try
-
-                        Dim d3 As Date = New DateTime(datareader("Time"))
-                        Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                         rowCount = datareader("ProcessRow")
                         'Get parent process info
@@ -307,7 +298,8 @@ Module Functions
 
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+
+                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -340,7 +332,7 @@ Module Functions
 
     End Sub
 
-    Sub DateFileQuery(eventspath As String, admonpath As String, TBefore As Integer)
+    Sub DateFileQuery(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "File Event"
         Dim index As Integer = 0
         Dim FileFilter = My.Application.CommandLineArgs(8)
@@ -363,10 +355,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '3'"
             Dim Query As String = "select * from Events where EventType = '3'"
             If TBefore > 0 Then
-                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case FileFilter
@@ -439,7 +431,7 @@ Module Functions
 
     End Sub
 
-    Sub DateImageQuery(eventspath As String, admonpath As String, TBefore As Integer)
+    Sub DateImageQuery(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "Image Event"
         Dim index As Integer = 0
         Dim ImageFilter = My.Application.CommandLineArgs(9)
@@ -462,10 +454,10 @@ Module Functions
             ' Dim Query As String = "select * from Events where EventType = '2'"
             Dim Query As String = "select * from Events where EventType = '2'"
             If TBefore > 0 Then
-                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & TBefore & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case ImageFilter
