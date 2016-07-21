@@ -34,7 +34,7 @@ Module Functions
                 Try
                     Dim d3 As Date = New DateTime(datareader("StartTime"))
                     Dim d4 As Date = New DateTime(datareader("EndTime"))
-                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hhmm : ss tt")
+                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
                     If TBefore > 0 Then
                         If CDate(Ltemp) < CDate(ticktime) Then
@@ -42,8 +42,8 @@ Module Functions
                         End If
                     End If
 
-                    Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh: mm : ss tt") & ";" &
-                              d4.ToLocalTime.ToString("M/d/yy hh: mm : ss tt") & ";" &
+                    Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
+                              d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
                               eventType & ";" &
                               datareader("FullPath").ToString() & ";" &
                               "" & ";" &
@@ -84,7 +84,7 @@ Module Functions
         Dim eventType = "Registry Event"
         Dim index As Integer = 0
 
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh: mm : ss tt")
+        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
 
         While index < 10
             Dim dbname As String = "events_"
