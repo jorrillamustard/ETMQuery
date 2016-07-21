@@ -1,20 +1,19 @@
 ﻿
-Imports System.Data.SQLite
-Imports System.IO
 
 Module Module1
-
 
     Sub Main()
         'Extract Support.exe with the needed DLLs
         ExtractDLL()
+        'Args List
+        '0 - Time, 1 - Process, 2 - Registry, 3 - Network, 4 - File, 5 - Image
+        '6 - RegFiter, 7 - NetFilter, 8 - FileFilter, 9 -ImageFilter
 
         Dim eventtype = ""
         Dim TimeBefore As Integer
         Dim DataPath As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\admon.db"
         Dim DataPath2 As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\"
-        Dim ProcFilter, RegFilter, NetFilter, FileFilter, ImageFilter As String
-        ProcFilter = My.Application.CommandLineArgs(6)
+
         '#If DEBUG Then
         '        DataPath = "..\..\..\SampleDB\admon.db"
         '        DataPath2 = "..\..\..\SampleDB\"
@@ -25,7 +24,7 @@ Module Module1
             TimeBefore = CInt(My.Application.CommandLineArgs(0))
 
             If My.Application.CommandLineArgs(1) = True Then
-                QueryETMDate(DataPath, TimeBefore, ProcFilter)
+                QueryETMDate(DataPath, TimeBefore)
             End If
 
             If My.Application.CommandLineArgs(2) = True Then

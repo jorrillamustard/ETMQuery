@@ -15,28 +15,26 @@ Module Functions
         End If
     End Sub
 
-    Sub QueryETMDate(DBPath As String, TBefore As Integer, Filter As String)
+    Sub QueryETMDate(admonpath As String, TBefore As Integer)
+        Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim eventType = "Process Event"
-        Dim conn As New SQLiteConnection("Data Source=" & DBPath)
+        Dim conn As New SQLiteConnection("Data Source=" & admonpath)
 
         Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
 
         conn.Open()
-        ' Dim Query As String = "select * from ProcessEvent "
-        Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & Filter & "%' OR CurrentProcessID LIKE '%" & Filter & "%' OR ParentId LIKE '%" & Filter & "%' OR ProcessId LIKE '%" & Filter & "%' OR Hash LIKE '%" & Filter & "%' OR UserName LIKE '%" & Filter & "%' OR CommandLine LIKE '%" & Filter & "%'"
+
+        ' Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CurrentProcessID LIKE '%" & Filter() & "%' OR ParentId LIKE '%" & Filter() & "%' OR ProcessId LIKE '%" & Filter() & "%' OR Hash LIKE '%" & Filter() & "%' OR UserName LIKE '%" & Filter() & "%' OR CommandLine LIKE '%" & Filter() & "%'"
+        Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
         Dim SQLcmd1 As New SQLiteCommand(query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
         If datareader.HasRows Then
             While datareader.Read()
 
                 Try
-
                     Dim d3 As Date = New DateTime(datareader("StartTime"))
                     Dim d4 As Date = New DateTime(datareader("EndTime"))
-
                     Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hhmm : ss tt")
-
-
 
                     If TBefore > 0 Then
                         If CDate(Ltemp) < CDate(ticktime) Then
@@ -77,12 +75,12 @@ Module Functions
             End While
 
         End If
-
-
         conn.Close()
 
     End Sub
-    Sub DateRegQuery(DataPath As String, DataPath2 As String, TBefore As Integer)
+    Sub DateRegQuery(eventspath As String, admonpath As String, TBefore As Integer)
+        Dim RegFilter = My.Application.CommandLineArgs(6)
+        Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim eventType = "Registry Event"
         Dim index As Integer = 0
 
@@ -92,26 +90,28 @@ Module Functions
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
 
-            If File.Exists(DataPath & dbname) Then
+            If File.Exists(eventspath & dbname) Then
                 'File here
             Else
                 Exit While
             End If
 
             Dim rowCount = 0
-            ' Console.WriteLine(DataPath & dbname)
-            Dim conn As New SQLiteConnection("Data Source=" & DataPath & dbname)
-            Dim conn2 As New SQLiteConnection("Data Source=" & DataPath2)
 
-            conn.Open()
-            conn2.Open()
-            Dim Query As String = "select * from Events where EventType = '0'"
+            Dim regconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
+            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
 
-            Dim SQLcmd1 As New SQLiteCommand(Query, conn)
+
+            regconn.Open()
+            'Dim Query As String = "select * from Events where EventType = '0'"
+            Dim Query As String = "select * from Events where EventType = '0' AND Path LIKE '%" & RegFilter & "%'"
+
+            Dim SQLcmd1 As New SQLiteCommand(Query, regconn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
+                procconn.Open()
                 While datareader.Read()
                     Try
                         ' Reached RegDateFunction while loop 1
@@ -125,11 +125,13 @@ Module Functions
 
                         rowCount = datareader("ProcessRow")
 
-                        Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
+                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
                         Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
 
                         If datareader2.Read() Then
@@ -174,26 +176,27 @@ Module Functions
                     End Try
 
                 End While
-
+                procconn.Close()
             End If
 
-            conn2.Close()
-            conn.Close()
+            regconn.Close()
             index += 1
         End While
 
     End Sub
 
-    Sub DateNetworkQuery(DataPath As String, DataPath2 As String, TBefore As Integer)
+    Sub DateNetworkQuery(eventspath As String, admonpath As String, TBefore As Integer)
         Dim eventType = "Network Event"
         Dim index As Integer = 0
+        Dim NetFilter = My.Application.CommandLineArgs(7)
+        Dim ImageFilter = My.Application.CommandLineArgs(9)
 
         Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
 
-            If File.Exists(DataPath & dbname) Then
+            If File.Exists(eventspath & dbname) Then
                 ' File is Here
             Else
                 Exit While
@@ -201,21 +204,20 @@ Module Functions
 
             Dim rowCount = 0
 
-            Dim conn As New SQLiteConnection("Data Source=" & DataPath & dbname)
-            Dim conn2 As New SQLiteConnection("Data Source=" & DataPath2)
+            Dim netconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
+            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
 
+            netconn.Open()
+            'Dim Query As String = "select * from Events where EventType = '1'"
+            Dim Query As String = "select * from Events where EventType = '1' AND LocalAddress = '%" & NetFilter & "%' OR LocalPort = '%" & NetFilter & "%' OR RemoteAddress = '%" & NetFilter & "%' OR RemotePort = '%" & NetFilter & "%'"
 
-
-
-            conn.Open()
-            conn2.Open()
-            Dim Query As String = "select * from Events where EventType = '1'"
-
-            Dim SQLcmd1 As New SQLiteCommand(Query, conn)
+            Dim SQLcmd1 As New SQLiteCommand(Query, netconn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
+                procconn.Open()
+
                 While datareader.Read()
                     Try
 
@@ -245,11 +247,12 @@ Module Functions
                             protocol = "UDP"
                         End If
 
-                        Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        ' Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
+                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
                         Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
 
                         If datareader2.Read() Then
@@ -281,8 +284,6 @@ Module Functions
                                   datareader("RemotePort").ToString & ";" &                                    'Remote Port
                                   "" & ";" &
                                   ""
-
-
                             Console.WriteLine(line1)
 
                         End If
@@ -292,26 +293,26 @@ Module Functions
                     End Try
 
                 End While
-
+                procconn.Close()
             End If
 
-            conn2.Close()
-            conn.Close()
+            netconn.Close()
             index += 1
         End While
 
     End Sub
 
-    Sub DateFileQuery(DataPath As String, DataPath2 As String, TBefore As Integer)
+    Sub DateFileQuery(eventspath As String, admonpath As String, TBefore As Integer)
         Dim eventType = "File Event"
         Dim index As Integer = 0
-
+        Dim FileFilter = My.Application.CommandLineArgs(8)
+        Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
 
-            If File.Exists(DataPath & dbname) Then
+            If File.Exists(eventspath & dbname) Then
                 ' Console.WriteLine("File is Here")
             Else
                 Exit While
@@ -319,19 +320,20 @@ Module Functions
 
             Dim rowCount = 0
 
-            Dim conn As New SQLiteConnection("Data Source=" & DataPath & dbname)
-            Dim conn2 As New SQLiteConnection("Data Source=" & DataPath2)
+            Dim fileconn As New SQLiteConnection("Data Source=" & eventspath & dbname)
+            Dim procconn As New SQLiteConnection("Data Source=" & admonpath)
 
+            fileconn.Open()
+            'Dim Query As String = "select * from Events where EventType = '3'"
+            Dim Query As String = "select * from Events where EventType = '3' AND Path like '%" & FileFilter & "%'"
 
-            conn.Open()
-            conn2.Open()
-            Dim Query As String = "select * from Events where EventType = '3'"
-
-            Dim SQLcmd1 As New SQLiteCommand(Query, conn)
+            Dim SQLcmd1 As New SQLiteCommand(Query, fileconn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
+                procconn.Open()
+
                 While datareader.Read()
                     Try
 
@@ -345,11 +347,12 @@ Module Functions
 
                         rowCount = datareader("ProcessRow")
 
-                        Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        '  Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
+                        Dim SQLcmd2 As New SQLiteCommand(Query2, procconn)
                         Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
 
 
@@ -362,7 +365,7 @@ Module Functions
                             If datareader("EventSubType") = 4 And datareader("isCreate") = 1 Then
                                 action = "File Created"
                             ElseIf datareader("EventSubType") = 4 And datareader("isCreate") = 0 Then
-                                action = "write"
+                                action = "Write"
                             ElseIf datareader("EventSubType") = 0 Then
                                 action = "Read"
                             Else
@@ -394,9 +397,6 @@ Module Functions
                                   "" & ";" &
                                   ""
 
-
-
-
                             Console.WriteLine(line1)
 
                         End If
@@ -406,26 +406,25 @@ Module Functions
                     End Try
 
                 End While
-
+                procconn.Close()
             End If
 
-            conn2.Close()
-            conn.Close()
+            fileconn.Close()
             index += 1
         End While
 
     End Sub
 
-    Sub DateImageQuery(DataPath As String, DataPath2 As String, TBefore As Integer)
+    Sub DateImageQuery(eventspath As String, admonpath As String, TBefore As Integer)
         Dim eventType = "Image Event"
         Dim index As Integer = 0
-
+        Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
 
-            If File.Exists(DataPath & dbname) Then
+            If File.Exists(eventspath & dbname) Then
                 ' Console.WriteLine("File is Here")
             Else
                 Exit While
@@ -433,18 +432,20 @@ Module Functions
 
             Dim rowCount = 0
             ' Console.WriteLine(DataPath & dbname)
-            Dim conn As New SQLiteConnection("Data Source=" & DataPath & dbname)
-            Dim conn2 As New SQLiteConnection("Data Source=" & DataPath2)
+            Dim ImageConn As New SQLiteConnection("Data Source=" & eventspath & dbname)
+            Dim ProcConn As New SQLiteConnection("Data Source=" & admonpath)
 
-            conn.Open()
-            conn2.Open()
-            Dim Query As String = "select * from Events where EventType = '2'"
+            ImageConn.Open()
 
-            Dim SQLcmd1 As New SQLiteCommand(Query, conn)
+            ' Dim Query As String = "select * from Events where EventType = '2'"
+            Dim Query As String = "select * from Events where EventType = '2' AND Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%'"
+            Dim SQLcmd1 As New SQLiteCommand(Query, ImageConn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
             If datareader.HasRows Then
+                ProcConn.Open()
+
                 While datareader.Read()
                     Try
 
@@ -458,11 +459,12 @@ Module Functions
 
                         rowCount = datareader("ProcessRow")
 
-                        Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
+                        Dim SQLcmd2 As New SQLiteCommand(Query2, ProcConn)
                         Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
 
 
@@ -506,11 +508,10 @@ Module Functions
                     End Try
 
                 End While
-
+                ProcConn.Close()
             End If
 
-            conn2.Close()
-            conn.Close()
+            ImageConn.Close()
             index += 1
         End While
 
