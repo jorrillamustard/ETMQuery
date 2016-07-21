@@ -24,24 +24,57 @@ Module Module1
             TimeBefore = CInt(My.Application.CommandLineArgs(0))
 
             If My.Application.CommandLineArgs(1) = True Then
-                QueryETMDate(DataPath, TimeBefore)
+                Dim ProcThread As New ProcThread
+                ProcThread.DataPath = DataPath
+                ProcThread.TimeBefore = TimeBefore
+                Dim ProcThreading As New Threading.Thread(AddressOf ProcThread.Start)
+                ProcThreading.Start()
+                ' QueryETMDate(DataPath, TimeBefore))
             End If
 
             If My.Application.CommandLineArgs(2) = True Then
-                DateRegQuery(DataPath2, DataPath, TimeBefore)
+                Dim RegThread As New RegThread
+                RegThread.DataPath = DataPath
+                RegThread.DataPath2 = DataPath2
+                RegThread.TimeBefore = TimeBefore
+
+                Dim RegThreading As New Threading.Thread(AddressOf RegThread.Start)
+                RegThreading.Start()
+                '  DateRegQuery(DataPath2, DataPath, TimeBefore)
             End If
 
             If My.Application.CommandLineArgs(3) = True Then
-                DateNetworkQuery(DataPath2, DataPath, TimeBefore)
+                Dim NetThread As New NetThread
+                NetThread.DataPath = DataPath
+                NetThread.DataPath2 = DataPath2
+                NetThread.TimeBefore = TimeBefore
+
+                Dim NetThreading As New Threading.Thread(AddressOf NetThread.Start)
+                NetThreading.Start()
+                ' DateNetworkQuery(DataPath2, DataPath, TimeBefore)
 
             End If
 
             If My.Application.CommandLineArgs(4) = True Then
-                DateFileQuery(DataPath2, DataPath, TimeBefore)
+                Dim FileThread As New FileThread
+                FileThread.DataPath = DataPath
+                FileThread.DataPath2 = DataPath2
+                FileThread.TimeBefore = TimeBefore
+
+                Dim FileThreading As New Threading.Thread(AddressOf FileThread.Start)
+                FileThreading.Start()
+                ' DateFileQuery(DataPath2, DataPath, TimeBefore)
             End If
 
             If My.Application.CommandLineArgs(5) = True Then
-                DateImageQuery(DataPath2, DataPath, TimeBefore)
+                Dim ImageThread As New ImageThread
+                ImageThread.DataPath = DataPath
+                ImageThread.DataPath2 = DataPath2
+                ImageThread.TimeBefore = TimeBefore
+
+                Dim ImageThreading As New Threading.Thread(AddressOf ImageThread.Start)
+                ImageThreading.Start()
+                ' DateImageQuery(DataPath2, DataPath, TimeBefore)
             End If
 
 
