@@ -240,7 +240,7 @@ Module Functions
                     Query = "select * from Events where EventType = '1'"
 
                 Case Else
-                    Query = "select * from Events where EventType = '1' AND LocalAddress = '%" & NetFilter & "%' OR LocalPort = '%" & NetFilter & "%' OR RemoteAddress = '%" & NetFilter & "%' OR RemotePort = '%" & NetFilter & "%' OR URL = '%" & NetFilter & "%'"
+                    Query = "select * from Events where EventType = '1' AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
 
             End Select
 
