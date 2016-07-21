@@ -101,8 +101,8 @@ Module Functions
                 Try
 
                     Dim eventout As New EventOutput
-                    eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                    eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EventTime = New DateTime(datareader("StartTime")).ToString("M/d/yy hh:mm:ss tt")
+                    eventout.EndTime = New DateTime(datareader("EndTime")).ToString("M/d/yy hh:mm:ss tt")
                     eventout.EventType = eventType
                     eventout.FullPath = datareader("FullPath").ToString()
                     eventout.CurrentPID = datareader("CurrentProcessID")
@@ -187,7 +187,7 @@ Module Functions
                         If matchimage = True Then
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.RegistryPath = datareader("Path").ToString
@@ -294,7 +294,7 @@ Module Functions
 
                             Dim eventout As New EventOutput
 
-                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -397,7 +397,7 @@ Module Functions
                             End If
 
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
@@ -481,7 +481,7 @@ Module Functions
 
                         If matchimage = True Then
                             Dim eventout As New EventOutput
-                            eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                            eventout.EventTime = New DateTime(datareader("Time")).ToString("M/d/yy hh:mm:ss tt")
                             eventout.EventType = eventType
                             eventout.FullPath = procinfo.Path
                             eventout.ParentPID = procinfo.PPID
