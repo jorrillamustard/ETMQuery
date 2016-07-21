@@ -71,27 +71,27 @@
     End Class
 
     Class ProcThread
-        Property DataPath
+        Property AdmonPath
         Property TimeBefore
         Sub Start()
-            QueryETMDate(DataPath, TimeBefore)
+            QueryETMDate(AdmonPath, TimeBefore)
         End Sub
     End Class
     Class EventThread
-        Property DataPath
-        Property DataPath2
+        Property AdmonPath
+        Property EventsPath
         Property TimeBefore
         Property EventType
         Sub Start()
             Select Case EventType
                 Case 1 'Registry
-                    DateRegQuery(DataPath2, DataPath, TimeBefore)
+                    DateRegQuery(EventsPath, AdmonPath, TimeBefore)
                 Case 2 'Network
-                    DateNetworkQuery(DataPath2, DataPath, TimeBefore)
+                    DateNetworkQuery(EventsPath, AdmonPath, TimeBefore)
                 Case 3 'File
-                    DateFileQuery(DataPath2, DataPath, TimeBefore)
+                    DateFileQuery(EventsPath, AdmonPath, TimeBefore)
                 Case 4 'Image
-                    DateImageQuery(DataPath2, DataPath, TimeBefore)
+                    DateImageQuery(EventsPath, AdmonPath, TimeBefore)
             End Select
 
         End Sub
