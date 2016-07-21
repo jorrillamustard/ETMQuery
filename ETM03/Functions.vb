@@ -62,14 +62,14 @@ Module Functions
         End Select
         Dim proccmd As New SQLiteCommand(procquery, procconn)
         Dim procreader As SQLiteDataReader = proccmd.ExecuteReader()
-        procreader.Read()
-        rtninfo.Path = procreader("FullPath")
-        rtninfo.PID = procreader("ProcessID")
-        rtninfo.PPID = procreader("ParentID")
-        procreader.Close()
-        proccmd.Dispose()
-        procconn.Close()
-
+        If procreader.Read() Then
+            rtninfo.Path = procreader("FullPath")
+            rtninfo.PID = procreader("ProcessID")
+            rtninfo.PPID = procreader("ParentID")
+            procreader.Close()
+            proccmd.Dispose()
+            procconn.Close()
+        End If
         Return rtninfo
     End Function
 
