@@ -9,12 +9,19 @@ Module Module1
         Dim TimeBefore As Integer
         Dim DataPath As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\admon.db"
         Dim DataPath2 As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\"
+        Dim ProcFilter, RegFilter, NetFilter, FileFilter, ImageFilter As String
+        ProcFilter = My.Application.CommandLineArgs(6)
+#If DEBUG Then
+        DataPath = "..\..\..\SampleDB\admon.db"
+        DataPath2 = "..\..\..\SampleDB\"
+#End If
+
         Try
 
             TimeBefore = CInt(My.Application.CommandLineArgs(0))
 
             If My.Application.CommandLineArgs(1) = True Then
-                QueryETMDate(DataPath, TimeBefore)
+                QueryETMDate(DataPath, TimeBefore, ProcFilter)
             End If
 
             If My.Application.CommandLineArgs(2) = True Then
@@ -36,7 +43,7 @@ Module Module1
 
 
         Catch ex As Exception
-            Console.Write(ex)
+            Console.Error.WriteLine(ex.Message)
         End Try
 
 
@@ -45,7 +52,7 @@ Module Module1
 
 
 
-    Private Sub QueryETMDate(DBPath As String, TBefore As Integer)
+    Private Sub QueryETMDate(DBPath As String, TBefore As Integer, Filter As String)
         Dim eventType = "Process Event"
         Dim conn As New SQLiteConnection("Data Source=" & DBPath)
         Dim csvFile As String = My.Application.Info.DirectoryPath & "\ETM.csv"
@@ -58,7 +65,8 @@ Module Module1
 
 
         conn.Open()
-        Dim Query As String = "select * from ProcessEvent "
+        ' Dim Query As String = "select * from ProcessEvent "
+        Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & Filter & "%' OR CurrentProcessID LIKE '%" & Filter & "%' OR ParentId LIKE '%" & Filter & "%' OR ProcessId LIKE '%" & Filter & "%' OR Hash LIKE '%" & Filter & "%' OR UserName LIKE '%" & Filter & "%' OR CommandLine LIKE '%" & Filter & "%'"
         Dim SQLcmd1 As New SQLiteCommand(Query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
         If datareader.HasRows Then
@@ -69,7 +77,7 @@ Module Module1
                     Dim d3 As Date = New DateTime(datareader("StartTime"))
                     Dim d4 As Date = New DateTime(datareader("EndTime"))
 
-                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hhmm : ss tt")
 
 
 
@@ -78,10 +86,10 @@ Module Module1
                             Continue While
                         End If
                     End If
-                    ' Console.WriteLine(Ltemp & "," & ticktime)
+                    ' Console.WriteLine(Ltemp & ", " & ticktime)
 
-                    Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
-                              d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
+                    Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh: mm : ss tt") & ";" &
+                              d4.ToLocalTime.ToString("M/d/yy hh: mm : ss tt") & ";" &
                               eventType & ";" &
                               datareader("FullPath").ToString() & ";" &
                               "" & ";" &
@@ -103,8 +111,9 @@ Module Module1
                               "" & ";" &
                               "" & ";" &
                               "")
-
-                    outFile.WriteLine(line)
+                    Console.WriteLine(line)
+                    Debug.WriteLine(line)
+                    '  outFile.WriteLine(line)
                 Catch ex As Exception
                     ' Console.WriteLine(ex)
                     Continue While
@@ -124,14 +133,14 @@ Module Module1
         Dim csvFile As String = My.Application.Info.DirectoryPath & "\REGETM.csv"
         Dim outFile As IO.StreamWriter = My.Computer.FileSystem.OpenTextFileWriter(csvFile, False)
 
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
+        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh: mm : ss tt")
 
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
 
             If File.Exists(DataPath & dbname) Then
-                '   Console.WriteLine("File is Here")
+                '   Console.WriteLine("File Is Here")
             Else
                 Exit While
             End If
@@ -148,47 +157,47 @@ Module Module1
             conn2.Open()
             Dim Query As String = "select * from Events where EventType = '0'"
 
-            Dim SQLcmd1 As New SQLiteCommand(Query, conn)
+        Dim SQLcmd1 As New SQLiteCommand(query, conn)
 
-            Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
+        Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
 
-            If datareader.HasRows Then
-                While datareader.Read()
-                    Try
-                        ' Console.WriteLine("Reached RegDateFunction while loop 1")
-                        Dim d3 As Date = New DateTime(datareader("Time"))
-                        Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        If TBefore > 0 Then
-                            If CDate(Ltemp) < CDate(ticktime) Then
-                                Continue While
-                            End If
+        If datareader.HasRows Then
+            While datareader.Read()
+                Try
+                    ' Console.WriteLine("Reached RegDateFunction while loop 1")
+                    Dim d3 As Date = New DateTime(datareader("Time"))
+                    Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                    If TBefore > 0 Then
+                        If CDate(Ltemp) < CDate(ticktime) Then
+                            Continue While
                         End If
+                    End If
 
 
 
-                        rowCount = datareader("ProcessRow")
-                        'Console.WriteLine(rowCount)
-                        'Console.WriteLine(d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt"))
+                    rowCount = datareader("ProcessRow")
+                    'Console.WriteLine(rowCount)
+                    'Console.WriteLine(d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt"))
 
-                        Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim ProcessName As String = ""
-                        Dim PID As String = ""
-                        Dim PPID As String = ""
-                        Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
-                        Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
-
-
-                        If datareader2.Read() Then
-                            If datareader("Path").ToString.Contains("\REGISTRY\") Then
-
-                                ProcessName = datareader2("FullPath").ToString
-                                PID = datareader2("ProcessID").ToString
-                                PPID = datareader2("ParentID").ToString
+                    Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
+                    Dim ProcessName As String = ""
+                    Dim PID As String = ""
+                    Dim PPID As String = ""
+                    Dim SQLcmd2 As New SQLiteCommand(Query2, conn2)
+                    Dim datareader2 As SQLiteDataReader = SQLcmd2.ExecuteReader()
 
 
+                    If datareader2.Read() Then
+                        If datareader("Path").ToString.Contains("\REGISTRY\") Then
+
+                            ProcessName = datareader2("FullPath").ToString
+                            PID = datareader2("ProcessID").ToString
+                            PPID = datareader2("ParentID").ToString
 
 
-                                Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
+
+
+                            Dim line1 As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" & 'Start Time
                                       "" & ";" &                                                            'End Time
                                       eventType & ";" &
                                       ProcessName & ";" &                                                   'Path
@@ -213,21 +222,21 @@ Module Module1
                                       ""
 
 
-                                outFile.WriteLine(line1)
-                            End If
+                            outFile.WriteLine(line1)
                         End If
+                    End If
 
-                    Catch ex As Exception
-                        ' Console.WriteLine(ex.ToString)
-                    End Try
+                Catch ex As Exception
+                    ' Console.WriteLine(ex.ToString)
+                End Try
 
-                End While
+            End While
 
-            End If
+        End If
 
-            conn2.Close()
-            conn.Close()
-            index += 1
+        conn2.Close()
+        conn.Close()
+        Index += 1
         End While
         outFile.Close()
     End Sub
