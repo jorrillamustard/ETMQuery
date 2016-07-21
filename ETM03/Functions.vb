@@ -28,7 +28,7 @@ Module Functions
         Dim query As String
         Select Case ImageFilter
             Case "*"
-                query = "select * from ProcessEvent'"
+                query = "select * from ProcessEvent"
 
             Case Else
                 query = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
@@ -533,7 +533,7 @@ Module Functions
                                 Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
 
                             Case Else
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                                Query2 = "select * from ProcessEvent where rowid = " & rowCount & " AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
 
                         End Select
                         Dim ProcessName As String = ""
