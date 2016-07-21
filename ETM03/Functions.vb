@@ -15,24 +15,40 @@ Module Functions
         End If
     End Sub
 
+    Function Get_TimeBeforeNow(ByVal TBefore As Integer)
+        'Subtract 1600 years for ETM time, then the minutes in TBefore
+        Dim rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
+        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
+        Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+    End Function
+
+    Function Convert_TimeToTick(ByVal dt As DateTime) As Long
+        Debug.WriteLine("Time To Ticks = " & dt.Ticks)
+        Return dt.Ticks
+    End Function
+
     Sub QueryETMDate(admonpath As String, TBefore As Integer)
         Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim eventType = "Process Event"
         Dim conn As New SQLiteConnection("Data Source=" & admonpath)
 
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
-
         conn.Open()
 
         ' Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CurrentProcessID LIKE '%" & Filter() & "%' OR ParentId LIKE '%" & Filter() & "%' OR ProcessId LIKE '%" & Filter() & "%' OR Hash LIKE '%" & Filter() & "%' OR UserName LIKE '%" & Filter() & "%' OR CommandLine LIKE '%" & Filter() & "%'"
-        Dim query As String
+        Dim query As String = "select * from ProcessEvent"
+        If TBefore > 0 Then
+            query = query & " where StartTime >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+            Debug.WriteLine(query)
+        Else
+            query = query & " where StartTime <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+            Debug.WriteLine(query)
+        End If
         Select Case ImageFilter
             Case "*"
-                query = "select * from ProcessEvent"
-
+                'Do nothing
             Case Else
-                query = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
-
+                'query = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                query = query & " AND (FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%')"
         End Select
         Dim SQLcmd1 As New SQLiteCommand(query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
@@ -44,11 +60,6 @@ Module Functions
                     Dim d4 As Date = New DateTime(datareader("EndTime"))
                     Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
 
-                    If TBefore > 0 Then
-                        If CDate(Ltemp) < CDate(ticktime) Then
-                            Continue While
-                        End If
-                    End If
 
                     Dim line As String = (d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
                               d4.ToLocalTime.ToString("M/d/yy hh:mm:ss tt") & ";" &
@@ -92,7 +103,6 @@ Module Functions
         Dim eventType = "Registry Event"
         Dim index As Integer = 0
 
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
 
         While index < 10
             Dim dbname As String = "events_"
@@ -112,13 +122,20 @@ Module Functions
 
             regconn.Open()
             'Dim Query As String = "select * from Events where EventType = '0'"
-            Dim Query As String
+            Dim Query As String = "select * from Events where EventType = '0'"
+            If TBefore > 0 Then
+                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            Else
+                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            End If
             Select Case RegFilter
                 Case "*"
-                    Query = "select * from Events where EventType = '0'"
+                    'Do nothing
 
                 Case Else
-                    Query = "select * from Events where EventType = '0' AND Path LIKE '%" & RegFilter & "%'"
+                    Query = " AND (Path LIKE '%" & RegFilter & "%')"
 
             End Select
 
@@ -133,11 +150,7 @@ Module Functions
                         ' Reached RegDateFunction while loop 1
                         Dim d3 As Date = New DateTime(datareader("Time"))
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        If TBefore > 0 Then
-                            If CDate(Ltemp) < CDate(ticktime) Then
-                                Continue While
-                            End If
-                        End If
+
 
                         rowCount = datareader("ProcessRow")
 
@@ -216,7 +229,6 @@ Module Functions
         Dim NetFilter = My.Application.CommandLineArgs(7)
         Dim ImageFilter = My.Application.CommandLineArgs(9)
 
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
@@ -234,13 +246,20 @@ Module Functions
 
             netconn.Open()
             'Dim Query As String = "select * from Events where EventType = '1'"
-            Dim Query As String
+            Dim Query As String = "select * from Events where EventType = '1'"
+            If TBefore > 0 Then
+                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            Else
+                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            End If
             Select Case NetFilter
                 Case "*"
-                    Query = "select * from Events where EventType = '1'"
+                    'Do nothing
 
                 Case Else
-                    Query = "select * from Events where EventType = '1' AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
+                    Query = " AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
 
             End Select
 
@@ -257,12 +276,6 @@ Module Functions
 
                         Dim d3 As Date = New DateTime(datareader("Time"))
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        If TBefore > 0 Then
-                            If CDate(Ltemp) < CDate(ticktime) Then
-                                Continue While
-                            End If
-                        End If
-
 
                         rowCount = datareader("ProcessRow")
 
@@ -349,7 +362,6 @@ Module Functions
         Dim index As Integer = 0
         Dim FileFilter = My.Application.CommandLineArgs(8)
         Dim ImageFilter = My.Application.CommandLineArgs(9)
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
@@ -367,13 +379,20 @@ Module Functions
 
             fileconn.Open()
             'Dim Query As String = "select * from Events where EventType = '3'"
-            Dim Query As String
+            Dim Query As String = "select * from Events where EventType = '3'"
+            If TBefore > 0 Then
+                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            Else
+                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            End If
             Select Case FileFilter
                 Case "*"
-                    Query = "select * from Events where EventType = '3'"
+                    'Do nothing
 
                 Case Else
-                    Query = "select * from Events where EventType = '3' AND Path like '%" & FileFilter & "%'"
+                    Query = " AND (Path like '%" & FileFilter & "%')"
 
             End Select
 
@@ -390,11 +409,7 @@ Module Functions
 
                         Dim d3 As Date = New DateTime(datareader("Time"))
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        If TBefore > 0 Then
-                            If CDate(Ltemp) < CDate(ticktime) Then
-                                Continue While
-                            End If
-                        End If
+
 
                         rowCount = datareader("ProcessRow")
 
@@ -478,7 +493,6 @@ Module Functions
         Dim eventType = "Image Event"
         Dim index As Integer = 0
         Dim ImageFilter = My.Application.CommandLineArgs(9)
-        Dim ticktime As String = Now.Subtract(New TimeSpan(0, TBefore, 0)).ToString("M/d/yy hh:mm:ss tt")
         While index < 10
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
@@ -497,13 +511,20 @@ Module Functions
             ImageConn.Open()
 
             ' Dim Query As String = "select * from Events where EventType = '2'"
-            Dim Query As String
+            Dim Query As String = "select * from Events where EventType = '2'"
+            If TBefore > 0 Then
+                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            Else
+                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Debug.WriteLine(Query)
+            End If
             Select Case ImageFilter
                 Case "*"
-                    Query = "select * from Events where EventType = '2'"
+                    'Do nothing
 
                 Case Else
-                    Query = "select * from Events where EventType = '2' AND Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%'"
+                    Query = " AND (Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%')"
 
             End Select
             Dim SQLcmd1 As New SQLiteCommand(Query, ImageConn)
@@ -518,11 +539,6 @@ Module Functions
 
                         Dim d3 As Date = New DateTime(datareader("Time"))
                         Dim Ltemp As String = d3.ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        If TBefore > 0 Then
-                            If CDate(Ltemp) < CDate(ticktime) Then
-                                Continue While
-                            End If
-                        End If
 
                         rowCount = datareader("ProcessRow")
 

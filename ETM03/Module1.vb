@@ -14,10 +14,10 @@ Module Module1
         Dim DataPath As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\admon.db"
         Dim DataPath2 As String = "C:\Program Files\Fidelis\Endpoint\Agent\config\admon.exe\"
 
-        '#If DEBUG Then
-        '        DataPath = "..\..\..\SampleDB\admon.db"
-        '        DataPath2 = "..\..\..\SampleDB\"
-        '#End If
+#If DEBUG Then
+        DataPath = "..\..\..\SampleDB\admon.db"
+        DataPath2 = "..\..\..\SampleDB\"
+#End If
 
         Try
 
