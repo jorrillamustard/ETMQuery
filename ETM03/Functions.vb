@@ -150,7 +150,7 @@ Module Functions
                     'Do nothing
 
                 Case Else
-                    Query = " AND (Path LIKE '%" & RegFilter & "%')"
+                    Query = Query & " AND (Path LIKE '%" & RegFilter & "%')"
 
             End Select
             Debug.WriteLine("Full Query = " & Query)
@@ -274,7 +274,7 @@ Module Functions
                     'Do nothing
 
                 Case Else
-                    Query = " AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
+                    Query = Query & " AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
 
             End Select
             Debug.WriteLine("Full Query = " & Query)
@@ -407,7 +407,7 @@ Module Functions
                     'Do nothing
 
                 Case Else
-                    Query = " AND (Path like '%" & FileFilter & "%')"
+                    Query = Query & " AND (Path like '%" & FileFilter & "%')"
 
             End Select
             Debug.WriteLine("Full Query = " & Query)
@@ -539,7 +539,7 @@ Module Functions
                     'Do nothing
 
                 Case Else
-                    Query = " AND (Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%')"
+                    Query = Query & " AND (Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%')"
 
             End Select
             Debug.WriteLine("Full Query = " & Query)
