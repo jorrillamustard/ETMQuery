@@ -24,6 +24,7 @@ Module Module1
             TimeBefore = CInt(My.Application.CommandLineArgs(0))
 
             If My.Application.CommandLineArgs(1) = True Then
+                Debug.WriteLine("Getting Process Events...")
                 If My.Application.CommandLineArgs(10) = True Then
                     Dim ProcThread As New ProcThread
                     ProcThread.DataPath = DataPath
@@ -38,8 +39,10 @@ Module Module1
             End If
 
             If My.Application.CommandLineArgs(2) = True Then
+                Debug.WriteLine("Getting Registry Events...")
                 If My.Application.CommandLineArgs(10) = True Then
-                    Dim RegThread As New RegThread
+                    Dim RegThread As New EventThread
+                    RegThread.EventType = 1
                     RegThread.DataPath = DataPath
                     RegThread.DataPath2 = DataPath2
                     RegThread.TimeBefore = TimeBefore
@@ -53,9 +56,11 @@ Module Module1
             End If
 
                 If My.Application.CommandLineArgs(3) = True Then
+                Debug.WriteLine("Getting Network Events...")
                 If My.Application.CommandLineArgs(10) = True Then
 
-                    Dim NetThread As New NetThread
+                    Dim NetThread As New EventThread
+                    NetThread.EventType = 2
                     NetThread.DataPath = DataPath
                     NetThread.DataPath2 = DataPath2
                     NetThread.TimeBefore = TimeBefore
@@ -68,8 +73,10 @@ Module Module1
             End If
 
             If My.Application.CommandLineArgs(4) = True Then
+                Debug.WriteLine("Getting File Events...")
                 If My.Application.CommandLineArgs(10) = True Then
-                    Dim FileThread As New FileThread
+                    Dim FileThread As New EventThread
+                    FileThread.EventType = 3
                     FileThread.DataPath = DataPath
                     FileThread.DataPath2 = DataPath2
                     FileThread.TimeBefore = TimeBefore
@@ -83,8 +90,10 @@ Module Module1
             End If
 
                 If My.Application.CommandLineArgs(5) = True Then
+                Debug.WriteLine("Getting Image Events...")
                 If My.Application.CommandLineArgs(10) = True Then
-                    Dim ImageThread As New ImageThread
+                    Dim ImageThread As New EventThread
+                    ImageThread.EventType = 4
                     ImageThread.DataPath = DataPath
                     ImageThread.DataPath2 = DataPath2
                     ImageThread.TimeBefore = TimeBefore

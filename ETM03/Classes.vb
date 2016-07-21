@@ -77,41 +77,25 @@
             QueryETMDate(DataPath, TimeBefore)
         End Sub
     End Class
-    Class RegThread
+    Class EventThread
         Property DataPath
         Property DataPath2
         Property TimeBefore
+        Property EventType
         Sub Start()
-            DateRegQuery(DataPath2, DataPath, TimeBefore)
-        End Sub
-    End Class
-    Class NetThread
-        Property DataPath
-        Property DataPath2
-        Property TimeBefore
-        Sub Start()
-            DateNetworkQuery(DataPath2, DataPath, TimeBefore)
-        End Sub
-    End Class
-    Class FileThread
-        Property DataPath
-        Property DataPath2
-        Property TimeBefore
-        Sub Start()
-            DateFileQuery(DataPath2, DataPath, TimeBefore)
-        End Sub
-    End Class
+            Select Case EventType
+                Case 1 'Registry
+                    DateRegQuery(DataPath2, DataPath, TimeBefore)
+                Case 2 'Network
+                    DateNetworkQuery(DataPath2, DataPath, TimeBefore)
+                Case 3 'File
+                    DateFileQuery(DataPath2, DataPath, TimeBefore)
+                Case 4 'Image
+                    DateImageQuery(DataPath2, DataPath, TimeBefore)
+            End Select
 
-    Class ImageThread
-        Property DataPath
-        Property DataPath2
-        Property TimeBefore
-        Sub Start()
-            DateImageQuery(DataPath2, DataPath, TimeBefore)
         End Sub
     End Class
-
-
 
 
 
