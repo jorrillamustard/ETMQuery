@@ -25,7 +25,15 @@ Module Functions
         conn.Open()
 
         ' Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CurrentProcessID LIKE '%" & Filter() & "%' OR ParentId LIKE '%" & Filter() & "%' OR ProcessId LIKE '%" & Filter() & "%' OR Hash LIKE '%" & Filter() & "%' OR UserName LIKE '%" & Filter() & "%' OR CommandLine LIKE '%" & Filter() & "%'"
-        Dim query As String = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+        Dim query As String
+        Select Case ImageFilter
+            Case "*"
+                query = "select * from ProcessEvent'"
+
+            Case Else
+                query = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
+        End Select
         Dim SQLcmd1 As New SQLiteCommand(query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
         If datareader.HasRows Then
@@ -104,7 +112,15 @@ Module Functions
 
             regconn.Open()
             'Dim Query As String = "select * from Events where EventType = '0'"
-            Dim Query As String = "select * from Events where EventType = '0' AND Path LIKE '%" & RegFilter & "%'"
+            Dim Query As String
+            Select Case RegFilter
+                Case "*"
+                    Query = "select * from Events where EventType = '0'"
+
+                Case Else
+                    Query = "select * from Events where EventType = '0' AND Path LIKE '%" & RegFilter & "%'"
+
+            End Select
 
             Dim SQLcmd1 As New SQLiteCommand(Query, regconn)
 
@@ -126,7 +142,16 @@ Module Functions
                         rowCount = datareader("ProcessRow")
 
                         'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                        Dim Query2 As String
+                        Select Case ImageFilter
+                            Case "*"
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
+
+                            Case Else
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
+                        End Select
+
 
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
@@ -209,7 +234,16 @@ Module Functions
 
             netconn.Open()
             'Dim Query As String = "select * from Events where EventType = '1'"
-            Dim Query As String = "select * from Events where EventType = '1' AND LocalAddress = '%" & NetFilter & "%' OR LocalPort = '%" & NetFilter & "%' OR RemoteAddress = '%" & NetFilter & "%' OR RemotePort = '%" & NetFilter & "%'"
+            Dim Query As String
+            Select Case NetFilter
+                Case "*"
+                    Query = "select * from Events where EventType = '1'"
+
+                Case Else
+                    Query = "select * from Events where EventType = '1' AND LocalAddress = '%" & NetFilter & "%' OR LocalPort = '%" & NetFilter & "%' OR RemoteAddress = '%" & NetFilter & "%' OR RemotePort = '%" & NetFilter & "%' OR URL = '%" & NetFilter & "%'"
+
+            End Select
+
 
             Dim SQLcmd1 As New SQLiteCommand(Query, netconn)
 
@@ -248,7 +282,15 @@ Module Functions
                         End If
 
                         ' Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                        Dim Query2 As String
+                        Select Case ImageFilter
+                            Case "*"
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
+
+                            Case Else
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
+                        End Select
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
@@ -325,7 +367,16 @@ Module Functions
 
             fileconn.Open()
             'Dim Query As String = "select * from Events where EventType = '3'"
-            Dim Query As String = "select * from Events where EventType = '3' AND Path like '%" & FileFilter & "%'"
+            Dim Query As String
+            Select Case FileFilter
+                Case "*"
+                    Query = "select * from Events where EventType = '3'"
+
+                Case Else
+                    Query = "select * from Events where EventType = '3' AND Path like '%" & FileFilter & "%'"
+
+            End Select
+
 
             Dim SQLcmd1 As New SQLiteCommand(Query, fileconn)
 
@@ -348,7 +399,15 @@ Module Functions
                         rowCount = datareader("ProcessRow")
 
                         '  Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                        Dim Query2 As String
+                        Select Case ImageFilter
+                            Case "*"
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
+
+                            Case Else
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
+                        End Select
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
@@ -438,7 +497,15 @@ Module Functions
             ImageConn.Open()
 
             ' Dim Query As String = "select * from Events where EventType = '2'"
-            Dim Query As String = "select * from Events where EventType = '2' AND Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%'"
+            Dim Query As String
+            Select Case ImageFilter
+                Case "*"
+                    Query = "select * from Events where EventType = '2'"
+
+                Case Else
+                    Query = "select * from Events where EventType = '2' AND Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%'"
+
+            End Select
             Dim SQLcmd1 As New SQLiteCommand(Query, ImageConn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
@@ -460,7 +527,15 @@ Module Functions
                         rowCount = datareader("ProcessRow")
 
                         'Dim Query2 As String = "SELECT * FROM ProcessEvent where rowid = " & rowCount
-                        Dim Query2 As String = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                        Dim Query2 As String
+                        Select Case ImageFilter
+                            Case "*"
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
+
+                            Case Else
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+
+                        End Select
                         Dim ProcessName As String = ""
                         Dim PID As String = ""
                         Dim PPID As String = ""
