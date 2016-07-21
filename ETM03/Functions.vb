@@ -16,15 +16,29 @@ Module Functions
     End Sub
 
     Function Get_TimeBeforeNow(ByVal TBefore As Integer)
-        'Subtract 1600 years for ETM time, then the minutes in TBefore
-        Dim rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
-        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
-        Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+        Try
+            'Subtract 1600 years for ETM time, then the minutes in TBefore
+            Dim rtn
+            If TBefore > 0 Then
+                rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
+            Else
+                rtn = Now.AddYears(-1600)
+            End If
+
+            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("M/d/yyyy hh:mm:ss tt"))
+            Return rtn.ToString("M/d/yyyy hh:mm:ss tt")
+        Catch ex As Exception
+            Return Now.AddYears(-1600).ToString("M/d/yyyy hh:mm:ss tt")
+        End Try
     End Function
 
-    Function Convert_TimeToTick(ByVal dt As DateTime) As Long
-        Debug.WriteLine("Time To Ticks = " & dt.Ticks)
-        Return dt.Ticks
+    Function Convert_TimeToTick(ByVal dt As DateTime)
+        Try
+            Debug.WriteLine("Time To Ticks = " & dt.Ticks)
+            Return dt.Ticks
+        Catch ex As Exception
+            Return Now.Ticks
+        End Try
     End Function
 
     Sub QueryETMDate(admonpath As String, TBefore As Integer)
@@ -50,6 +64,7 @@ Module Functions
                 'query = "select * from ProcessEvent where FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
                 query = query & " AND (FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%')"
         End Select
+        Debug.WriteLine("Full Query = " & query)
         Dim SQLcmd1 As New SQLiteCommand(query, conn)
         Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
         If datareader.HasRows Then
@@ -124,10 +139,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '0'"
             Dim Query As String = "select * from Events where EventType = '0'"
             If TBefore > 0 Then
-                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case RegFilter
@@ -138,7 +153,7 @@ Module Functions
                     Query = " AND (Path LIKE '%" & RegFilter & "%')"
 
             End Select
-
+            Debug.WriteLine("Full Query = " & Query)
             Dim SQLcmd1 As New SQLiteCommand(Query, regconn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
@@ -161,7 +176,7 @@ Module Functions
                                 Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "'"
 
                             Case Else
-                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%'"
+                                Query2 = "select * from ProcessEvent where rowid = '" & rowCount & "' AND (FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%')"
 
                         End Select
 
@@ -248,10 +263,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '1'"
             Dim Query As String = "select * from Events where EventType = '1'"
             If TBefore > 0 Then
-                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case NetFilter
@@ -262,7 +277,7 @@ Module Functions
                     Query = " AND (LocalAddress LIKE '%" & NetFilter & "%' OR LocalPort LIKE '%" & NetFilter & "%' OR RemoteAddress LIKE '%" & NetFilter & "%' OR RemotePort LIKE '%" & NetFilter & "%' OR URL LIKE '%" & NetFilter & "%')"
 
             End Select
-
+            Debug.WriteLine("Full Query = " & Query)
 
             Dim SQLcmd1 As New SQLiteCommand(Query, netconn)
 
@@ -381,10 +396,10 @@ Module Functions
             'Dim Query As String = "select * from Events where EventType = '3'"
             Dim Query As String = "select * from Events where EventType = '3'"
             If TBefore > 0 Then
-                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case FileFilter
@@ -395,7 +410,7 @@ Module Functions
                     Query = " AND (Path like '%" & FileFilter & "%')"
 
             End Select
-
+            Debug.WriteLine("Full Query = " & Query)
 
             Dim SQLcmd1 As New SQLiteCommand(Query, fileconn)
 
@@ -513,10 +528,10 @@ Module Functions
             ' Dim Query As String = "select * from Events where EventType = '2'"
             Dim Query As String = "select * from Events where EventType = '2'"
             If TBefore > 0 Then
-                Query = Query & " where Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time >= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             Else
-                Query = Query & " where Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
+                Query = Query & " AND Time <= '" & Convert_TimeToTick(Get_TimeBeforeNow(TBefore)) & "'"
                 Debug.WriteLine(Query)
             End If
             Select Case ImageFilter
@@ -527,6 +542,7 @@ Module Functions
                     Query = " AND (Path like '%" & ImageFilter & "%' OR Hash like '%" & ImageFilter & "%')"
 
             End Select
+            Debug.WriteLine("Full Query = " & Query)
             Dim SQLcmd1 As New SQLiteCommand(Query, ImageConn)
 
             Dim datareader As SQLiteDataReader = SQLcmd1.ExecuteReader()
