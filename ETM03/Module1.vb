@@ -61,7 +61,7 @@ Module Module1
 
             End If
 
-                If My.Application.CommandLineArgs(3) = True Then
+            If My.Application.CommandLineArgs(3) = True Then
                 Debug.WriteLine("Getting Network Events...")
                 If My.Application.CommandLineArgs(10) = True Then
 
@@ -95,7 +95,7 @@ Module Module1
 
             End If
 
-                If My.Application.CommandLineArgs(5) = True Then
+            If My.Application.CommandLineArgs(5) = True Then
                 Debug.WriteLine("Getting Image Events...")
                 If My.Application.CommandLineArgs(10) = True Then
                     Dim ImageThread As New EventThread
