@@ -29,6 +29,7 @@ Module Module1
             End If
 
             If My.Application.CommandLineArgs(1) = True Then
+
                 Debug.WriteLine("Getting Process Events...")
                 If My.Application.CommandLineArgs(10) = True Then
                     Dim ProcThread As New ProcThread
@@ -38,7 +39,7 @@ Module Module1
                     Dim ProcThreading As New Threading.Thread(AddressOf ProcThread.Start)
                     ProcThreading.Start()
                 Else
-                    QueryETMDate(admonpath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryProcess(admonpath, TimeBefore, TimeBeforeGreaterThan0)
                 End If
 
 
@@ -56,7 +57,7 @@ Module Module1
                     Dim RegThreading As New Threading.Thread(AddressOf RegThread.Start)
                     RegThreading.Start()
                 Else
-                    DateRegQuery(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryReg(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
                 End If
 
             End If
@@ -74,7 +75,7 @@ Module Module1
                     Dim NetThreading As New Threading.Thread(AddressOf NetThread.Start)
                     NetThreading.Start()
                 Else
-                    DateNetworkQuery(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryNetwork(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
                 End If
             End If
 
@@ -90,7 +91,7 @@ Module Module1
                     Dim FileThreading As New Threading.Thread(AddressOf FileThread.Start)
                     FileThreading.Start()
                 Else
-                    DateFileQuery(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryFile(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
                 End If
 
             End If
@@ -108,7 +109,7 @@ Module Module1
                     ImageThreading.Start()
                 Else
 
-                    DateImageQuery(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryImage(eventspath, admonpath, TimeBefore, TimeBeforeGreaterThan0)
                 End If
             End If
 
