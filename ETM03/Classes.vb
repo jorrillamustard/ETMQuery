@@ -75,7 +75,7 @@
         Property TimeBefore
         Property TimeBeforeGreaterThan0
         Sub Start()
-            QueryETMDate(AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
+            QueryProcess(AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
         End Sub
     End Class
     Class EventThread
@@ -87,13 +87,13 @@
         Sub Start()
             Select Case EventType
                 Case 1 'Registry
-                    DateRegQuery(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryReg(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
                 Case 2 'Network
-                    DateNetworkQuery(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryNetwork(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
                 Case 3 'File
-                    DateFileQuery(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryFile(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
                 Case 4 'Image
-                    DateImageQuery(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
+                    QueryImage(EventsPath, AdmonPath, TimeBefore, TimeBeforeGreaterThan0)
             End Select
 
         End Sub
