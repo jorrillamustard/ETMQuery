@@ -164,7 +164,7 @@ Module Functions
             For Each arg In RegArg
                 'Dim Query As String = "select * from Events where EventType = '0'"
                 Dim Query As String = "select * from Events where EventType = '0'"
-                If TBeforeGreaterThan0 > 0 Then
+                If TBeforeGreaterThan0 = True Then
                     Query = Query & " AND Time >= '" & TBefore & "'"
                     Debug.WriteLine(Query)
                 Else
@@ -260,7 +260,7 @@ Module Functions
             For Each arg In NetArg
                 'Dim Query As String = "select * from Events where EventType = '1'"
                 Dim Query As String = "select * from Events where EventType = '1'"
-                If TBeforeGreaterThan0 > 0 Then
+                If TBeforeGreaterThan0 = True Then
                     Query = Query & " AND Time >= '" & TBefore & "'"
                     Debug.WriteLine(Query)
                 Else
@@ -377,7 +377,7 @@ Module Functions
                 FileFilter = arg
                 'Dim Query As String = "select * from Events where EventType = '3'"
                 Dim Query As String = "select * from Events where EventType = '3'"
-                If TBeforeGreaterThan0 > 0 Then
+                If TBeforeGreaterThan0 = True Then
                     Query = Query & " AND Time >= '" & TBefore & "'"
                     Debug.WriteLine(Query)
                 Else
@@ -476,7 +476,7 @@ Module Functions
             For Each arg In imagearg
                 ' Dim Query As String = "select * from Events where EventType = '2'"
                 Dim Query As String = "select * from Events where EventType = '2'"
-                If TBeforeGreaterThan0 > 0 Then
+                If TBeforeGreaterThan0 = True Then
                     Query = Query & " AND Time >= '" & TBefore & "'"
                     Debug.WriteLine(Query)
                 Else
