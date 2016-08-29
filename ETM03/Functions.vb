@@ -33,39 +33,57 @@ Module Functions
     End Function
 
     Sub ExtractDLL()
-        If IO.File.Exists("Support.exe") Then
-            Dim psinfo As New ProcessStartInfo
-            psinfo.FileName = "Support.exe"
-            psinfo.Arguments = "-o .\ -y"
-            psinfo.CreateNoWindow = True
-            psinfo.WindowStyle = ProcessWindowStyle.Hidden
+        Try
+            If IO.File.Exists("Support.exe") Then
+                Dim psinfo As New ProcessStartInfo
+                psinfo.FileName = "Support.exe"
+                psinfo.Arguments = "-o .\ -y"
+                psinfo.CreateNoWindow = True
+                psinfo.WindowStyle = ProcessWindowStyle.Hidden
 
-            Dim ext = Process.Start(psinfo)
-            ext.WaitForExit()
-        End If
+                Dim ext = Process.Start(psinfo)
+                ext.WaitForExit()
+            End If
+        Catch ex As Exception
+            Console.Error.WriteLine("0 - " & ex.Message)
+            Environment.Exit(0)
+        End Try
+
     End Sub
 
     Function Get_TimeBeforeNow(ByVal TBefore As Integer)
+        Try
 
-        'Subtract 1600 years for ETM time, then the minutes in TBefore
-        Dim rtn As New DateTime
-        If TBefore > 0 Then
-            rtn = DateTime.UtcNow
-            rtn = rtn.AddYears(-1600).AddMinutes(Math.Abs(TBefore) * -1)
-            'rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
-        Else
-            rtn = Now.AddYears(-1600)
+            'Subtract 1600 years for ETM time, then the minutes in TBefore
+            Dim rtn As New DateTime
+            If TBefore > 0 Then
+                rtn = DateTime.UtcNow
+                rtn = rtn.AddYears(-1600).AddMinutes(Math.Abs(TBefore) * -1)
+                'rtn = Now.AddYears(-1600).Subtract(New TimeSpan(0, TBefore, 0))
+            Else
+                rtn = Now.AddYears(-1600)
             End If
 
-        Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("o"))
-        Return rtn
+            Debug.WriteLine("TimeBeforeNow = " & rtn.ToString("o"))
+            Return rtn
+        Catch ex As Exception
+            Debug.WriteLine(ex.Message)
+            Console.Error.WriteLine("2 - " & ex.Message)
+            Return Now.AddYears(-1600)
+        End Try
+
 
     End Function
 
     Function Convert_TimeToTick(ByVal dt As DateTime)
+        Try
+            Debug.WriteLine("Time To Ticks = " & dt.Ticks)
+            Return dt.Ticks
 
-        Debug.WriteLine("Time To Ticks = " & dt.Ticks)
-        Return dt.Ticks
+        Catch ex As Exception
+            Console.Error.WriteLine("3 - " & ex.Message)
+            Return Now.AddYears(-1600).Ticks
+        End Try
 
     End Function
 
@@ -77,7 +95,6 @@ Module Functions
         Dim filterarg As New List(Of String)(My.Application.CommandLineArgs(9).Split(","c))
 
 
-        conn.Open()
 
         For Each arg In filterarg
             Debug.WriteLine(arg)
@@ -103,6 +120,14 @@ Module Functions
                     query = query & " AND (FullPath LIKE '%" & ImageFilter & "%' OR CommandLine LIKE '%" & ImageFilter & "%')"
             End Select
             Debug.WriteLine("Full Query = " & query)
+            Try
+                conn.Open()
+
+            Catch ex As Exception
+                Console.Error.WriteLine("9 - " & ex.Message)
+
+            End Try
+
             Dim conncmd As New SQLiteCommand(query, conn)
             Dim datareader As SQLiteDataReader = conncmd.ExecuteReader()
             If datareader.HasRows Then
@@ -111,8 +136,23 @@ Module Functions
                     Try
 
                         Dim eventout As New EventOutput
-                        eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
-                        eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                        If datareader("StartTime") > DateTime.MinValue.Ticks And datareader("StartTime") < DateTime.MaxValue.Ticks Then
+                            eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
+                        Else
+                            eventout.EventTime = "N/A"
+                        End If
+                        If datareader("EndTime") > DateTime.MinValue.Ticks And datareader("EndTime") < DateTime.MaxValue.Ticks Then
+
+                            eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
+                        Else
+                            eventout.EndTime = "N/A"
+                        End If
+                        If eventout.EventTime = "1601-01-01 12:00:00 AM" Then
+                            eventout.EventTime = "N/A"
+                        End If
+                        If eventout.EndTime = "1601-01-01 12:00:00 AM" Then
+                            eventout.EndTime = "N/A"
+                        End If
                         eventout.EventType = eventType
                         eventout.FullPath = datareader("FullPath").ToString()
                         eventout.CurrentPID = datareader("CurrentProcessID")
@@ -122,12 +162,12 @@ Module Functions
                         eventout.Hash = datareader("Hash").ToString()
                         eventout.Username = datareader("UserName").ToString()
                         eventout.CommandLine = datareader("CommandLine").ToString()
-                        Debug.WriteLine(eventout)
+                        ' Debug.WriteLine(eventout)
                         Console.WriteLine(eventout)
 
 
                     Catch ex As Exception
-                        Console.Error.WriteLine(ex.Message)
+                        Console.Error.WriteLine("4 - " & ex.Message)
                         Continue While
                     End Try
                 End While
@@ -144,16 +184,20 @@ Module Functions
         Dim RegArg As New List(Of String)(My.Application.CommandLineArgs(6).Split(","c))
         Dim ImageArg As New List(Of String)(My.Application.CommandLineArgs(9).Split(","c))
         Dim eventType = "Registry Event"
-        Dim index As Integer = 0
+        Dim index As Integer = 10
+nextindex:
 
-        While index < 10
+        While index >= 0
+
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
+            Debug.WriteLine("Current Network Database: " & dbname)
 
             If File.Exists(eventspath & dbname) Then
-                'File here
+                ' File is Here
             Else
-                Exit While
+                index -= 1
+                GoTo nextindex
             End If
 
             Dim rowCount = 0
@@ -196,13 +240,13 @@ Module Functions
                                 Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, arg1)
                                 Dim matchimage As Boolean = True
                                 If Not arg1 = "*" Then
-                                    If procinfo.Path Is vbNullString Then matchimage = False
+                                    If procinfo.Path = vbNullString Then matchimage = False
                                 End If
 
                                 If matchimage = True Then
 
                                     Dim eventout As New EventOutput
-                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
                                     eventout.EventType = eventType
                                     eventout.FullPath = procinfo.Path
                                     eventout.RegistryPath = datareader("Path").ToString
@@ -211,13 +255,13 @@ Module Functions
                                     eventout.Key = datareader("Key").ToString
                                     eventout.Data = datareader("Data").ToString
 
-                                    Debug.WriteLine(eventout)
+                                    ' Debug.WriteLine(eventout)
                                     Console.WriteLine(eventout)
 
                                 End If
                             Next
                         Catch ex As Exception
-                            Console.Error.WriteLine(ex.Message)
+                            Console.Error.WriteLine("5 - " & ex.Message)
                         End Try
 
                     End While
@@ -228,18 +272,20 @@ Module Functions
             Next
             regconn.Close()
             regconn.Dispose()
-            index += 1
+            index -= 1
         End While
 
     End Sub
 
     Sub QueryNetwork(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "Network Event"
-        Dim index As Integer = 0
+        Dim index As Integer = 10
         Dim NetArg As New List(Of String)(My.Application.CommandLineArgs(7).Split(","c))
         Dim ImageArg As New List(Of String)(My.Application.CommandLineArgs(9).Split(","c))
 
-        While index < 10
+nextindex:
+
+        While index >= 0
 
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
@@ -248,7 +294,8 @@ Module Functions
             If File.Exists(eventspath & dbname) Then
                 ' File is Here
             Else
-                Exit While
+                index -= 1
+                GoTo nextindex
             End If
 
             Dim rowCount = 0
@@ -293,7 +340,7 @@ Module Functions
                                 Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, arg1)
                                 Dim matchimage As Boolean = true
                                 If Not arg1 = "*" Then
-                                    If procinfo.Path Is vbNullString Then matchimage = False
+                                    If procinfo.Path = vbNullString Then matchimage = False
                                 End If
 
                                 If matchimage = True Then
@@ -315,7 +362,7 @@ Module Functions
 
 
                                     Dim eventout As New EventOutput
-                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
                                     eventout.EventType = eventType
                                     eventout.FullPath = procinfo.Path
                                     eventout.ParentPID = procinfo.PPID
@@ -328,12 +375,12 @@ Module Functions
                                     eventout.RemotePort = datareader("RemotePort").ToString
                                     eventout.URL = datareader("URL").ToString
 
-                                    Debug.WriteLine(eventout)
+                                    '  Debug.WriteLine(eventout)
                                     Console.WriteLine(eventout)
                                 End If
                             Next
                         Catch ex As Exception
-                            Console.Error.WriteLine(ex.Message)
+                            Console.Error.WriteLine("6 - " & ex.Message)
                         End Try
 
                     End While
@@ -344,29 +391,35 @@ Module Functions
             Next
             netconn.Close()
             netconn.Dispose()
-            index += 1
+            index -= 1
         End While
 
     End Sub
 
     Sub QueryFile(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "File Event"
-        Dim index As Integer = 0
+        Dim index As Integer = 10
         Dim FileFilter As String
         'Dim ImageFilter = My.Application.CommandLineArgs(9)
         Dim filterarg As New List(Of String)(My.Application.CommandLineArgs(8).Split(","c))
         Dim imagearg As New List(Of String)(My.Application.CommandLineArgs(9).Split(","c))
-        While index < 10
-            Dim dbname As String = "events_"
-            dbname = dbname & index.ToString & ".db"
 
-            If File.Exists(eventspath & dbname) Then
-                ' Console.WriteLine("File is Here")
-            Else
-                Exit While
-            End If
+nextindex:
 
-            Dim rowCount = 0
+            While index >= 0
+
+                Dim dbname As String = "events_"
+                dbname = dbname & index.ToString & ".db"
+                Debug.WriteLine("Current File Event Database: " & dbname)
+
+                If File.Exists(eventspath & dbname) Then
+                    ' File is Here
+                Else
+                    index -= 1
+                    GoTo nextindex
+                End If
+
+                Dim rowCount = 0
 
             Dim fileconn As New SQLiteConnection("Data Source=" & eventspath & dbname & ";Read Only=True;")
 
@@ -410,7 +463,7 @@ Module Functions
                                 Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, argimg)
                                 Dim matchimage As Boolean = True
                                 If Not argimg = "*" Then
-                                    If procinfo.Path Is vbNullString Then matchimage = False
+                                    If procinfo.Path = vbNullString Then matchimage = False
                                 End If
 
                                 If matchimage = True Then
@@ -426,20 +479,21 @@ Module Functions
                                     End If
 
                                     Dim eventout As New EventOutput
-                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+
+                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
                                     eventout.EventType = eventType
                                     eventout.FullPath = procinfo.Path
                                     eventout.CommandLine = datareader("Path")
                                     eventout.ParentPID = procinfo.PPID
                                     eventout.PID = procinfo.PID
                                     eventout.FileAction = action
-                                    Debug.WriteLine(eventout)
+                                    '  Debug.WriteLine(eventout)
 
                                     Console.WriteLine(eventout)
                                 End If
                             Next
                         Catch ex As Exception
-                            Console.Error.WriteLine(ex.Message)
+                            Console.Error.WriteLine("7 - " & ex.Message)
                         End Try
 
                     End While
@@ -449,23 +503,28 @@ Module Functions
             Next
             fileconn.Close()
                 fileconn.Dispose()
-                index += 1
+            index -= 1
         End While
 
     End Sub
 
     Sub QueryImage(eventspath As String, admonpath As String, TBefore As Long, TBeforeGreaterThan0 As Boolean)
         Dim eventType = "Image Event"
-        Dim index As Integer = 0
+        Dim index As Integer = 10
         Dim imagearg As New List(Of String)(My.Application.CommandLineArgs(9).Split(","c))
-        While index < 10
+nextindex:
+
+        While index >= 0
+
             Dim dbname As String = "events_"
             dbname = dbname & index.ToString & ".db"
+            Debug.WriteLine("Current Image Event Database: " & dbname)
 
             If File.Exists(eventspath & dbname) Then
-                ' Console.WriteLine("File is Here")
+                ' File is Here
             Else
-                Exit While
+                index -= 1
+                GoTo nextindex
             End If
 
             Dim rowCount = 0
@@ -508,12 +567,12 @@ Module Functions
                                 Dim procinfo As ParentProcessInfo = EventProcessInfo(admonpath, rowCount, imgarg1)
                                 Dim matchimage As Boolean = True
                                 If Not imgarg1 = "*" Then
-                                    If procinfo.Path Is vbNullString Then matchimage = False
+                                    If procinfo.Path = vbNullString Then matchimage = False
                                 End If
 
                                 If matchimage = True Then
                                     Dim eventout As New EventOutput
-                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.ToString("M/d/yy hh:mm:ss tt")
+                                    eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
                                     eventout.EventType = eventType
                                     eventout.FullPath = procinfo.Path
                                     eventout.ParentPID = procinfo.PPID
@@ -522,13 +581,13 @@ Module Functions
                                     eventout.ImageBase = datareader("ImageBase").ToString
                                     eventout.ImageSize = datareader("ImageSize").ToString
 
-                                    Debug.WriteLine(eventout)
+                                    ' Debug.WriteLine(eventout)
 
                                     Console.WriteLine(eventout)
                                 End If
                             Next
                         Catch ex As Exception
-                            Console.Error.WriteLine(ex.Message)
+                            Console.Error.WriteLine("8 - " & ex.Message)
                         End Try
 
                     End While
@@ -538,7 +597,7 @@ Module Functions
             Next
             ImageConn.Close()
             ImageConn.Dispose()
-            index += 1
+            index -= 1
         End While
 
     End Sub

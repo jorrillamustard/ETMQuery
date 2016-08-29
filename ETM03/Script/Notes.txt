@@ -1,0 +1,6 @@
+ETMQ 2.1 uses both x64 and x86 builds.
+
+Build each release individually choosing the Target CPU as x64 or Any CPU.
+After build rename the files to ETM<target>.exe I.E.: ETMx64.exe or ETMx86.exe.
+
+In the script add both builds, the Support.exe and the batch file.

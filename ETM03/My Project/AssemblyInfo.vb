@@ -9,7 +9,7 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("ETM03")>
-<Assembly: AssemblyDescription("")>
+<Assembly: AssemblyDescription("Query admon db on endpoint")>
 <Assembly: AssemblyCompany("")>
 <Assembly: AssemblyProduct("ETM03")>
 <Assembly: AssemblyCopyright("Copyright ©  2016")>
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.0")>
-<Assembly: AssemblyFileVersion("1.0.0.0")>
+<Assembly: AssemblyVersion("2.1.0.0")>
+<Assembly: AssemblyFileVersion("2.1.0.0")>

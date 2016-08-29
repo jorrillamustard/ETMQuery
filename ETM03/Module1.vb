@@ -115,7 +115,7 @@ Module Module1
 
 
         Catch ex As Exception
-            Console.Error.WriteLine(ex.Message)
+            Console.Error.WriteLine("1 - " & ex.Message)
         End Try
 
 
