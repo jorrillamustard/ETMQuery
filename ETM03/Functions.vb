@@ -136,10 +136,22 @@ Module Functions
                     Try
 
                         Dim eventout As New EventOutput
-                        eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
-                        eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
+                        If datareader("StartTime") > DateTime.MinValue.Ticks And datareader("StartTime") < DateTime.MaxValue.Ticks Then
+                            eventout.EventTime = New DateTime(datareader("StartTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
+                        Else
+                            eventout.EventTime = "N/A"
+                        End If
+                        If datareader("EndTime") > DateTime.MinValue.Ticks And datareader("EndTime") < DateTime.MaxValue.Ticks Then
+
+                            eventout.EndTime = New DateTime(datareader("EndTime")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
+                        Else
+                            eventout.EndTime = "N/A"
+                        End If
+                        If eventout.EventTime = "1601-01-01 12:00:00 AM" Then
+                            eventout.EventTime = "N/A"
+                        End If
                         If eventout.EndTime = "1601-01-01 12:00:00 AM" Then
-                            eventout.EndTime = ""
+                            eventout.EndTime = "N/A"
                         End If
                         eventout.EventType = eventType
                         eventout.FullPath = datareader("FullPath").ToString()
@@ -467,6 +479,7 @@ nextindex:
                                     End If
 
                                     Dim eventout As New EventOutput
+
                                     eventout.EventTime = New DateTime(datareader("Time")).ToLocalTime.AddYears(1600).ToString("yyyy-MM-dd hh:mm:ss tt")
                                     eventout.EventType = eventType
                                     eventout.FullPath = procinfo.Path
